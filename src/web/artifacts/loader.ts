@@ -3,7 +3,6 @@ import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Scene } from "@babylonjs/core/scene";
-import { Color3 } from "@babylonjs/core/Maths/math.color";
 import "@babylonjs/loaders/glTF";
 import type { Artifact, PalaceConfig } from "../../shared/types";
 import { createArtifactByCategory } from "./shapes";
