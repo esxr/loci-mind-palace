@@ -80,27 +80,44 @@ export function createEngine(container: HTMLElement): GameEngine {
   // ── Jump (spacebar) — gravity is handled by Babylon.js built-in system ──
   let jumpVelocity = 0;
   let prevY = 0;
+  let isOnGround = true;
+  let groundCheckFrames = 0;
 
   scene.onKeyboardObservable.add((kbInfo) => {
     if (
       kbInfo.type === KeyboardEventTypes.KEYDOWN &&
       kbInfo.event.code === "Space"
     ) {
-      // Only jump if on the ground (vertical speed ~ 0 means resting on surface)
-      if (Math.abs(camera.position.y - prevY) < 0.01) {
-        jumpVelocity = 0.25;
+      // Only jump if on the ground (vertical position stable over recent frames)
+      if (isOnGround && jumpVelocity <= 0) {
+        jumpVelocity = 0.5;
       }
     }
   });
 
   // Apply jump velocity on top of built-in gravity each frame
   scene.onBeforeRenderObservable.add(() => {
+    // Ground detection: if Y hasn't changed significantly over several frames, we're grounded
+    if (Math.abs(camera.position.y - prevY) < 0.05) {
+      groundCheckFrames++;
+      if (groundCheckFrames >= 3) {
+        isOnGround = true;
+      }
+    } else {
+      groundCheckFrames = 0;
+      if (jumpVelocity <= 0) {
+        isOnGround = false;
+      }
+    }
+
     if (jumpVelocity > 0) {
       camera.position.y += jumpVelocity;
-      jumpVelocity -= 0.012; // decelerate upward motion; gravity pulls back down
+      jumpVelocity -= 0.018; // decelerate upward motion; gravity pulls back down
       if (jumpVelocity <= 0) {
         jumpVelocity = 0;
       }
+      isOnGround = false;
+      groundCheckFrames = 0;
     }
     prevY = camera.position.y;
   });
