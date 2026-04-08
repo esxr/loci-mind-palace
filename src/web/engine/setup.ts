@@ -50,8 +50,9 @@ export function createEngine(container: HTMLElement): GameEngine {
   camera.keysLeft = [65]; // A
   camera.keysRight = [68]; // D
 
-  // Collision (no built-in gravity — we handle jump/gravity manually)
-  camera.applyGravity = false;
+  // Collision + built-in gravity for natural falling & ground detection
+  scene.gravity = new Vector3(0, -0.4, 0);
+  camera.applyGravity = true;
   camera.checkCollisions = true;
   camera.ellipsoid = new Vector3(0.3, 0.9, 0.3);
   scene.collisionsEnabled = true;
@@ -76,36 +77,38 @@ export function createEngine(container: HTMLElement): GameEngine {
     }
   });
 
-  // ── Jump (spacebar) with continuous gravity ──
-  let verticalVelocity = 0;
-  let GROUND_LEVEL = 2; // default, updated via setGroundLevel
+  // ── Jump (spacebar) — gravity is handled by Babylon.js built-in system ──
+  let jumpVelocity = 0;
+  let prevY = 0;
 
   scene.onKeyboardObservable.add((kbInfo) => {
     if (
       kbInfo.type === KeyboardEventTypes.KEYDOWN &&
       kbInfo.event.code === "Space"
     ) {
-      // Only jump if on or very near the ground
-      if (camera.position.y <= GROUND_LEVEL + 0.2) {
-        verticalVelocity = 0.18;
+      // Only jump if on the ground (vertical speed ~ 0 means resting on surface)
+      if (Math.abs(camera.position.y - prevY) < 0.01) {
+        jumpVelocity = 0.25;
       }
     }
   });
 
-  // Continuous gravity — always active, handles both jumping and falling
+  // Apply jump velocity on top of built-in gravity each frame
   scene.onBeforeRenderObservable.add(() => {
-    verticalVelocity -= 0.008; // gravity
-    camera.position.y += verticalVelocity;
-
-    // Clamp to ground
-    if (camera.position.y <= GROUND_LEVEL) {
-      camera.position.y = GROUND_LEVEL;
-      verticalVelocity = 0;
+    if (jumpVelocity > 0) {
+      camera.position.y += jumpVelocity;
+      jumpVelocity -= 0.012; // decelerate upward motion; gravity pulls back down
+      if (jumpVelocity <= 0) {
+        jumpVelocity = 0;
+      }
     }
+    prevY = camera.position.y;
   });
 
-  const setGroundLevel = (y: number): void => {
-    GROUND_LEVEL = y;
+  // setGroundLevel is kept for API compatibility but is now a no-op
+  // (Babylon.js collision detection handles ground automatically)
+  const setGroundLevel = (_y: number): void => {
+    /* no-op — built-in gravity + collisions handle ground level */
   };
 
   return { engine, scene, camera, canvas, setGroundLevel };
