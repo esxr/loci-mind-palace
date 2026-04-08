@@ -1,0 +1,9 @@
+{
+  "id": "loci-mind-palace",
+  "name": "Loci \u2014 Mind Palace Generator",
+  "version": "0.1.0",
+  "minAppVersion": "1.0.0",
+  "description": "Transform your notes into walkable 3D mind palaces",
+  "author": "Loci Team",
+  "isDesktopOnly": true
+}

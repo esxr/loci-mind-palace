@@ -1,0 +1,167 @@
+/* Loci Plugin Styles */
+
+/* Generation Modal */
+.loci-modal {
+  max-width: 600px;
+  padding: 20px;
+}
+
+.loci-modal .modal-title {
+  font-size: 1.4em;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+/* Note Selector */
+.loci-note-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 16px;
+}
+
+.loci-note-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.loci-note-item:hover {
+  background: var(--background-modifier-hover);
+}
+
+.loci-note-item input[type="checkbox"] {
+  margin: 0;
+}
+
+/* Theme Picker */
+.loci-theme-picker {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.loci-theme-card {
+  flex: 1;
+  border: 2px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.loci-theme-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--interactive-accent);
+}
+
+.loci-theme-card.selected {
+  border-color: var(--interactive-accent);
+  background: var(--background-modifier-hover);
+}
+
+.loci-theme-card .theme-preview {
+  width: 100%;
+  height: 48px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.loci-theme-card .theme-name {
+  font-weight: 500;
+  font-size: 0.9em;
+}
+
+/* Theme color previews */
+.loci-theme-card[data-theme="nature"] .theme-preview {
+  background: linear-gradient(135deg, #56aa30, #8bc34a, #87ceeb);
+}
+
+.loci-theme-card[data-theme="cityscape"] .theme-preview {
+  background: linear-gradient(135deg, #1a1a2e, #ff3296, #3296ff);
+}
+
+.loci-theme-card[data-theme="space_station"] .theme-preview {
+  background: linear-gradient(135deg, #000010, #64b4ff, #b4c1be);
+}
+
+/* Progress Bar */
+.loci-progress-container {
+  margin-top: 16px;
+}
+
+.loci-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--background-modifier-border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.loci-progress-fill {
+  height: 100%;
+  background: var(--interactive-accent);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+.loci-progress-text {
+  font-size: 0.85em;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Generate Button */
+.loci-generate-btn {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 1em;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+  border: none;
+  transition: opacity 0.2s;
+}
+
+.loci-generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loci-generate-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+/* Depth Selector */
+.loci-depth-selector {
+  margin-bottom: 16px;
+}
+
+.loci-depth-selector select {
+  width: 100%;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  color: var(--text-normal);
+}
+
+/* Section Labels */
+.loci-section-label {
+  font-weight: 500;
+  font-size: 0.9em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
