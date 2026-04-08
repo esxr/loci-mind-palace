@@ -1,5 +1,7 @@
-import { Engine } from "noa-engine";
 import type { Space } from "../../shared/types";
+
+/** Function signature for placing a block: (blockId, x, y, z) */
+export type BlockSetter = (id: number, x: number, y: number, z: number) => void;
 
 /**
  * Simple deterministic pseudo-random number generator (mulberry32).
@@ -99,14 +101,14 @@ function isNearPathOpening(
  * - Respects shape (rectangular, circular, organic)
  * - Leaves openings near detected path waypoints for doorways
  *
- * @param noa      The noa-engine instance
+ * @param setBlock Function to place a block: (blockId, x, y, z)
  * @param space    Space configuration from PalaceConfig
  * @param blockMap Map of block type IDs to noa numeric block IDs
  * @param pathOpenings Optional array of world positions where paths connect
  *                     (near walls) so openings can be left
  */
 export function buildSpace(
-  noa: Engine,
+  setBlock: BlockSetter,
   space: Space,
   blockMap: Map<string, number>,
   pathOpenings: Array<{ x: number; y: number; z: number }> = []
@@ -137,7 +139,7 @@ export function buildSpace(
 
       // --- Floor ---
       if (floorId !== undefined) {
-        noa.setBlock(floorId, worldX, baseY, worldZ);
+        setBlock(floorId, worldX, baseY, worldZ);
       }
 
       // --- Walls ---
@@ -151,13 +153,13 @@ export function buildSpace(
           if (isNearPathOpening(worldX, worldY, worldZ, pathOpenings)) {
             continue;
           }
-          noa.setBlock(wallId, worldX, worldY, worldZ);
+          setBlock(wallId, worldX, worldY, worldZ);
         }
       }
 
       // --- Ceiling ---
       if (has_ceiling && ceilingId !== undefined) {
-        noa.setBlock(ceilingId, worldX, baseY + height, worldZ);
+        setBlock(ceilingId, worldX, baseY + height, worldZ);
       }
     }
   }

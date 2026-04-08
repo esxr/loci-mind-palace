@@ -1,5 +1,7 @@
-import { Engine } from "noa-engine";
 import type { Path, WorldPosition } from "../../shared/types";
+
+/** Function signature for placing a block: (blockId, x, y, z) */
+type BlockSetter = (id: number, x: number, y: number, z: number) => void;
 
 /**
  * Linearly interpolate between two world positions, yielding every integer
@@ -63,12 +65,12 @@ function perpendicularXZ(
  *  - bridge:   floor only, elevated (same as trail but implies height change)
  *  - tunnel:   floor + walls + ceiling (fully enclosed)
  *
- * @param noa      The noa-engine instance
+ * @param setBlock Function to place a block: (blockId, x, y, z)
  * @param path     Path configuration from PalaceConfig
  * @param blockMap Map of block type IDs to noa numeric block IDs
  */
 export function buildPath(
-  noa: Engine,
+  setBlock: BlockSetter,
   path: Path,
   blockMap: Map<string, number>
 ): void {
@@ -102,7 +104,7 @@ export function buildPath(
         const floorKey = key(fx, pt.y, fz);
 
         if (!placed.has(floorKey)) {
-          noa.setBlock(floorId, fx, pt.y, fz);
+          setBlock(floorId, fx, pt.y, fz);
           placed.add(floorKey);
         }
       }
@@ -117,7 +119,7 @@ export function buildPath(
           for (let h = 1; h <= wallHeight; h++) {
             const wKey = key(wx, pt.y + h, wz);
             if (!placed.has(wKey)) {
-              noa.setBlock(wallId, wx, pt.y + h, wz);
+              setBlock(wallId, wx, pt.y + h, wz);
               placed.add(wKey);
             }
           }
@@ -131,7 +133,7 @@ export function buildPath(
           const cz = Math.round(pt.z + perpZ * w);
           const cKey = key(cx, pt.y + wallHeight + 1, cz);
           if (!placed.has(cKey)) {
-            noa.setBlock(wallId, cx, pt.y + wallHeight + 1, cz);
+            setBlock(wallId, cx, pt.y + wallHeight + 1, cz);
             placed.add(cKey);
           }
         }

@@ -6,18 +6,21 @@ import { Color3 } from "@babylonjs/core/Maths/math.color";
 import "@babylonjs/loaders/glTF";
 import type { Artifact } from "../../shared/types";
 
+/** Function signature for placing a block: (blockId, x, y, z) */
+type BlockSetter = (id: number, x: number, y: number, z: number) => void;
+
 /**
  * Build a voxel pedestal underneath an artifact's world position.
  *
  * The pedestal is a solid block of pedestal.width x pedestal.height x pedestal.width
  * centered under the artifact position. It raises the artifact above the floor.
  *
- * @param noa      The noa-engine instance
+ * @param setBlock Function to place a block: (blockId, x, y, z)
  * @param artifact Artifact configuration from PalaceConfig
  * @param blockMap Map of block type IDs to noa numeric block IDs
  */
 export function buildPedestal(
-  noa: Engine,
+  setBlock: BlockSetter,
   artifact: Artifact,
   blockMap: Map<string, number>
 ): void {
@@ -30,7 +33,7 @@ export function buildPedestal(
   for (let h = 0; h < pedestal.height; h++) {
     for (let dx = -halfW; dx <= halfW; dx++) {
       for (let dz = -halfW; dz <= halfW; dz++) {
-        noa.setBlock(
+        setBlock(
           pedestalId,
           Math.round(position.x) + dx,
           Math.round(position.y) + h,

@@ -1,5 +1,6 @@
 import { Engine } from "noa-engine";
 import type { PalaceConfig, Space } from "../../shared/types";
+import { BlockStore } from "./blockStore";
 import { buildSpace } from "./spaces";
 import { buildPath } from "./paths";
 import { buildPedestal, loadArtifact } from "../artifacts/loader";
@@ -44,7 +45,7 @@ function computeBounds(spaces: Space[]): {
  * Extends a small margin (4 blocks) around the bounding box of all spaces.
  */
 function buildGroundPlane(
-  noa: Engine,
+  store: BlockStore,
   config: PalaceConfig,
   blockMap: Map<string, number>
 ): void {
@@ -62,7 +63,7 @@ function buildGroundPlane(
 
   for (let x = bounds.minX - margin; x <= bounds.maxX + margin; x++) {
     for (let z = bounds.minZ - margin; z <= bounds.maxZ + margin; z++) {
-      noa.setBlock(numericId, x, groundY, z);
+      store.set(numericId, x, groundY, z);
     }
   }
 }
@@ -70,37 +71,54 @@ function buildGroundPlane(
 /**
  * Top-level world generation orchestrator.
  * Builds all voxel geometry from a PalaceConfig:
- *  1. Ground plane
- *  2. Spaces (rooms with floors, walls, optional ceilings)
- *  3. Paths (corridors, trails, bridges, tunnels)
- *  4. Pedestals + artifact meshes
- *  5. Player spawn
+ *  1. Install worldDataNeeded handler (critical for noa chunk rendering)
+ *  2. Ground plane
+ *  3. Spaces (rooms with floors, walls, optional ceilings)
+ *  4. Paths (corridors, trails, bridges, tunnels)
+ *  5. Pedestals + artifact meshes
+ *  6. Player spawn + camera orientation
  */
 export async function generateWorld(
   noa: Engine,
   config: PalaceConfig,
   blockMap: Map<string, number>
 ): Promise<void> {
+  // Create a block store that buffers all voxel placements.
+  // noa-engine only creates chunks via the worldDataNeeded event; calling
+  // noa.setBlock() directly is a no-op when the chunk does not yet exist.
+  // The store collects placements and the handler feeds them to noa on demand.
+  const store = new BlockStore();
+  store.install(noa);
+
+  // Setter function bound to the store for sub-builders
+  const setBlock = (id: number, x: number, y: number, z: number) =>
+    store.set(id, x, y, z);
+
   // 1. Build ground plane (thin base layer under all spaces)
-  buildGroundPlane(noa, config, blockMap);
+  buildGroundPlane(store, config, blockMap);
 
   // 2. Build each space
   for (const space of config.spaces) {
-    buildSpace(noa, space, blockMap);
+    buildSpace(setBlock, space, blockMap);
   }
 
   // 3. Build paths between spaces
   for (const path of config.paths) {
-    buildPath(noa, path, blockMap);
+    buildPath(setBlock, path, blockMap);
   }
 
   // 4. Build pedestals and load artifacts
   for (const artifact of config.artifacts) {
-    buildPedestal(noa, artifact, blockMap);
+    buildPedestal(setBlock, artifact, blockMap);
     await loadArtifact(noa, artifact);
   }
 
-  // 5. Set spawn point (offset Y by 1 so player doesn't clip into floor)
+  // 5. Set spawn point above the ground level so the player doesn't clip
   const sp = config.spawn_point;
-  noa.ents.setPosition(noa.playerEntity, [sp.x, sp.y + 1, sp.z]);
+  const spawnY = sp.y + 2; // stand on floor (floor at sp.y, feet at sp.y+1 would clip)
+  noa.ents.setPosition(noa.playerEntity, [sp.x, spawnY, sp.z]);
+
+  // 6. Orient camera to look slightly downward so the world is visible on load
+  noa.camera.heading = 0;
+  noa.camera.pitch = -0.3;
 }
