@@ -1,4 +1,4 @@
-import Engine from "noa-engine";
+import { Engine } from "noa-engine";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";

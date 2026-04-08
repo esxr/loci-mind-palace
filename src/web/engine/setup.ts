@@ -1,4 +1,4 @@
-import Engine from "noa-engine";
+import { Engine } from "noa-engine";
 import type { ThemeConfig, BlockType } from "../../shared/types";
 
 let blockIdCounter = 1;

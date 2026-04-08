@@ -1,4 +1,4 @@
-import Engine from "noa-engine";
+import { Engine } from "noa-engine";
 import type { PalaceConfig, Space } from "../../shared/types";
 import { buildSpace } from "./spaces";
 import { buildPath } from "./paths";

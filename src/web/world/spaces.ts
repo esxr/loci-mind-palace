@@ -1,4 +1,4 @@
-import Engine from "noa-engine";
+import { Engine } from "noa-engine";
 import type { Space } from "../../shared/types";
 
 /**

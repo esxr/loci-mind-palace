@@ -185,6 +185,7 @@
   },
   "active": "c5e2369996032616",
   "lastOpenFiles": [
+    "src/web/vite-env.d.ts",
     "src/web/ui/minimap.ts",
     "src/web/ui/library.ts",
     "src/web/main.ts",
@@ -196,7 +197,6 @@
     "src/functions/generate-palace/enrichment.ts",
     "src/web/ui/dialogue.ts",
     "pitch-deck/videos/cave.mp4",
-    "pitch-deck/videos/underwater.mp4",
     "node_modules/fsevents/README.md",
     "node_modules/aabb-3d/README.md",
     "node_modules/box-intersect/README.md",

@@ -1,4 +1,4 @@
-import Engine from "noa-engine";
+import { Engine } from "noa-engine";
 import type { NPC, ChatMessage } from "../../shared/types";
 import { buildNPCMesh } from "./renderer";
 import { DialoguePanel } from "../ui/dialogue";
@@ -184,7 +184,7 @@ export class NPCManager {
     // Remove noa entities
     for (const npcEntity of this.npcs) {
       try {
-        this.noa.entities.removeEntity(npcEntity.entityId);
+        (this.noa.entities as any).removeEntity?.(npcEntity.entityId);
       } catch {
         // Entity may already be removed
       }
