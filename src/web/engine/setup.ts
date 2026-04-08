@@ -50,9 +50,8 @@ export function createEngine(container: HTMLElement): GameEngine {
   camera.keysLeft = [65]; // A
   camera.keysRight = [68]; // D
 
-  // Gravity + collision
-  scene.gravity = new Vector3(0, -0.5, 0);
-  camera.applyGravity = true;
+  // Collision (no built-in gravity — we handle jump/gravity manually)
+  camera.applyGravity = false;
   camera.checkCollisions = true;
   camera.ellipsoid = new Vector3(0.3, 0.9, 0.3);
   scene.collisionsEnabled = true;
@@ -77,31 +76,31 @@ export function createEngine(container: HTMLElement): GameEngine {
     }
   });
 
-  // ── Jump (spacebar) with velocity-based physics ──
+  // ── Jump (spacebar) with continuous gravity ──
   let verticalVelocity = 0;
-  let onGround = true;
-  let GROUND_LEVEL = 2; // default, can be updated via setGroundLevel
+  let GROUND_LEVEL = 2; // default, updated via setGroundLevel
 
   scene.onKeyboardObservable.add((kbInfo) => {
     if (
       kbInfo.type === KeyboardEventTypes.KEYDOWN &&
-      kbInfo.event.code === "Space" &&
-      onGround
+      kbInfo.event.code === "Space"
     ) {
-      verticalVelocity = 0.15;
-      onGround = false;
+      // Only jump if on or very near the ground
+      if (camera.position.y <= GROUND_LEVEL + 0.2) {
+        verticalVelocity = 0.18;
+      }
     }
   });
 
+  // Continuous gravity — always active, handles both jumping and falling
   scene.onBeforeRenderObservable.add(() => {
-    if (!onGround) {
-      camera.position.y += verticalVelocity;
-      verticalVelocity -= 0.008;
-      if (camera.position.y <= GROUND_LEVEL) {
-        camera.position.y = GROUND_LEVEL;
-        verticalVelocity = 0;
-        onGround = true;
-      }
+    verticalVelocity -= 0.008; // gravity
+    camera.position.y += verticalVelocity;
+
+    // Clamp to ground
+    if (camera.position.y <= GROUND_LEVEL) {
+      camera.position.y = GROUND_LEVEL;
+      verticalVelocity = 0;
     }
   });
 
