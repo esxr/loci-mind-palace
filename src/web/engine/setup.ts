@@ -90,7 +90,7 @@ export function createEngine(container: HTMLElement): GameEngine {
     ) {
       // Only jump if on the ground (vertical position stable over recent frames)
       if (isOnGround && jumpVelocity <= 0) {
-        jumpVelocity = 0.5;
+        jumpVelocity = 0.8;
       }
     }
   });
