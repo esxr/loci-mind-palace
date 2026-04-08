@@ -6,6 +6,7 @@ import {
   HemisphericLight,
   Color3,
   Color4,
+  KeyboardEventTypes,
 } from "@babylonjs/core";
 
 export interface GameEngine {
@@ -13,6 +14,7 @@ export interface GameEngine {
   scene: Scene;
   camera: FreeCamera;
   canvas: HTMLCanvasElement;
+  setGroundLevel: (y: number) => void;
 }
 
 /**
@@ -75,5 +77,37 @@ export function createEngine(container: HTMLElement): GameEngine {
     }
   });
 
-  return { engine, scene, camera, canvas };
+  // ── Jump (spacebar) with velocity-based physics ──
+  let verticalVelocity = 0;
+  let onGround = true;
+  let GROUND_LEVEL = 2; // default, can be updated via setGroundLevel
+
+  scene.onKeyboardObservable.add((kbInfo) => {
+    if (
+      kbInfo.type === KeyboardEventTypes.KEYDOWN &&
+      kbInfo.event.code === "Space" &&
+      onGround
+    ) {
+      verticalVelocity = 0.15;
+      onGround = false;
+    }
+  });
+
+  scene.onBeforeRenderObservable.add(() => {
+    if (!onGround) {
+      camera.position.y += verticalVelocity;
+      verticalVelocity -= 0.008;
+      if (camera.position.y <= GROUND_LEVEL) {
+        camera.position.y = GROUND_LEVEL;
+        verticalVelocity = 0;
+        onGround = true;
+      }
+    }
+  });
+
+  const setGroundLevel = (y: number): void => {
+    GROUND_LEVEL = y;
+  };
+
+  return { engine, scene, camera, canvas, setGroundLevel };
 }
