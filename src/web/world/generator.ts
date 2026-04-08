@@ -2,8 +2,9 @@ import type { PalaceConfig, Space } from "../../shared/types";
 import type { GameEngine } from "../engine/setup";
 import { buildSpace } from "./spaces";
 import { buildPath } from "./paths";
-import { buildZoneArchways } from "./zones";
+import { buildZoneArchways, buildLandmarkBeacons } from "./zones";
 import { buildPedestal, loadArtifact } from "../artifacts/loader";
+import { buildGoldenPath } from "./breadcrumbs";
 import {
   MeshBuilder,
   Vector3,
@@ -119,13 +120,106 @@ function buildConceptNameMap(config: PalaceConfig): Map<string, string> {
 }
 
 /**
+ * Build an elevated spawn platform with railings and descending stairs.
+ * The player starts on this platform overlooking the palace.
+ */
+function buildSpawnVista(
+  scene: Scene,
+  config: PalaceConfig,
+  materials: Map<string, StandardMaterial>
+): void {
+  const spawnPos = config.spawn_point;
+
+  // ── Material ──
+  const pathBlockId = config.theme.palette.paths[0]?.id;
+  const resolved = (pathBlockId ? materials.get(pathBlockId) : undefined) ??
+    materials.values().next().value;
+  if (!resolved) return;
+  const platformMat: StandardMaterial = resolved;
+
+  // ── Elevated platform ──
+  const platform = MeshBuilder.CreateBox(
+    "spawnPlatform",
+    { width: 8, height: 0.3, depth: 8 },
+    scene
+  );
+  platform.position = new Vector3(spawnPos.x, spawnPos.y + 4, spawnPos.z);
+  platform.material = platformMat;
+  platform.checkCollisions = true;
+
+  // ── Support pillar underneath ──
+  const pillar = MeshBuilder.CreateCylinder(
+    "spawnPillar",
+    { height: 4, diameter: 2 },
+    scene
+  );
+  pillar.position = new Vector3(spawnPos.x, spawnPos.y + 2, spawnPos.z);
+  pillar.material = platformMat;
+  pillar.checkCollisions = true;
+
+  // ── Railings (3 sides, front open for stairs) ──
+  const railHeight = 1;
+  const railThickness = 0.15;
+  const railY = spawnPos.y + 4.5;
+
+  // Back railing (negative Z side)
+  const railBack = MeshBuilder.CreateBox(
+    "railBack",
+    { width: 8, height: railHeight, depth: railThickness },
+    scene
+  );
+  railBack.position = new Vector3(spawnPos.x, railY, spawnPos.z - 4);
+  railBack.material = platformMat;
+  railBack.checkCollisions = true;
+
+  // Left railing
+  const railLeft = MeshBuilder.CreateBox(
+    "railLeft",
+    { width: railThickness, height: railHeight, depth: 8 },
+    scene
+  );
+  railLeft.position = new Vector3(spawnPos.x - 4, railY, spawnPos.z);
+  railLeft.material = platformMat;
+  railLeft.checkCollisions = true;
+
+  // Right railing
+  const railRight = MeshBuilder.CreateBox(
+    "railRight",
+    { width: railThickness, height: railHeight, depth: 8 },
+    scene
+  );
+  railRight.position = new Vector3(spawnPos.x + 4, railY, spawnPos.z);
+  railRight.material = platformMat;
+  railRight.checkCollisions = true;
+
+  // Front side: NO railing (stairs descend here)
+
+  // ── 4 descending steps ──
+  for (let i = 0; i < 4; i++) {
+    const step = MeshBuilder.CreateBox(
+      `step_${i}`,
+      { width: 3, height: 0.3, depth: 1.5 },
+      scene
+    );
+    step.position = new Vector3(
+      spawnPos.x,
+      spawnPos.y + 4 - (i + 1),
+      spawnPos.z + 4 + i * 1.5
+    );
+    step.material = platformMat;
+    step.checkCollisions = true;
+  }
+}
+
+/**
  * Top-level world generation orchestrator.
  * Builds all mesh geometry from a PalaceConfig:
  *  1. Ground plane
  *  2. Spaces (rooms with smooth floors, walls, optional ceilings, labels)
  *  3. Paths (corridors, trails, bridges, tunnels)
  *  4. Pedestals + artifact meshes
- *  5. Camera spawn position + orientation
+ *  5. Spawn vista platform
+ *  6. Camera spawn position + orientation
  */
 export async function generateWorld(
   gameEngine: GameEngine,
@@ -153,14 +247,40 @@ export async function generateWorld(
   // 4. Build zone transition archways
   buildZoneArchways(scene, config, materials);
 
+  // 4b. Build landmark beacons at zone hubs
+  buildLandmarkBeacons(scene, config);
+
   // 5. Build pedestals and load artifacts
   for (const artifact of config.artifacts) {
     buildPedestal(scene, artifact, materials);
-    await loadArtifact(scene, artifact);
+    await loadArtifact(scene, artifact, config);
   }
 
-  // 6. Set camera position at spawn point
+  // 6. Build golden breadcrumb trail
+  buildGoldenPath(scene, config);
+
+  // 7. Build spawn vista platform
+  buildSpawnVista(scene, config, materials);
+
+  // 8. Set camera position on spawn platform
   const sp = config.spawn_point;
-  camera.position = new Vector3(sp.x, sp.y + 2, sp.z);
-  camera.rotation.x = 0.1; // Slightly looking down
+  camera.position = new Vector3(sp.x, sp.y + 6, sp.z);
+
+  // Look toward the first concept in the learning path
+  const firstConceptId = config.learning_path[0];
+  const firstSpace = config.spaces.find(
+    (s) => s.concept_id === firstConceptId
+  );
+  if (firstSpace) {
+    const targetX = firstSpace.position.x + firstSpace.size.width / 2;
+    const targetZ = firstSpace.position.z + firstSpace.size.depth / 2;
+    camera.rotation.y = Math.atan2(
+      targetX - camera.position.x,
+      targetZ - camera.position.z
+    );
+  }
+  camera.rotation.x = 0.15; // Slight downward tilt for vista view
+
+  // Update ground level: platform top + player height
+  gameEngine.setGroundLevel(sp.y + 4 + 0.3 + 1.8);
 }

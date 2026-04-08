@@ -3,9 +3,12 @@ import {
   MeshBuilder,
   StandardMaterial,
   Color3,
+  Color4,
   Vector3,
   Mesh,
   DynamicTexture,
+  SpotLight,
+  ParticleSystem,
 } from "@babylonjs/core";
 import type { PalaceConfig, Space } from "../../shared/types";
 
@@ -197,4 +200,129 @@ function createZoneLabel(
   mat.backFaceCulling = false;
   mat.useAlphaFromDiffuseTexture = true;
   plane.material = mat;
+}
+
+/**
+ * Identify the hub concept for each zone (highest importance) and build
+ * a tall glowing beacon at its location.
+ */
+export function buildLandmarkBeacons(
+  scene: Scene,
+  config: PalaceConfig,
+): Mesh[] {
+  const beacons: Mesh[] = [];
+
+  // Group spaces by zone_id, find hub (highest importance) per zone
+  const zoneSpaces = new Map<number, Space[]>();
+  for (const space of config.spaces) {
+    if (!zoneSpaces.has(space.zone_id)) zoneSpaces.set(space.zone_id, []);
+    zoneSpaces.get(space.zone_id)!.push(space);
+  }
+
+  // Concept importance lookup
+  const importanceMap = new Map<string, number>();
+  for (const c of config.concept_graph.concepts) {
+    importanceMap.set(c.id, c.importance);
+  }
+
+  for (const [_zoneId, spaces] of zoneSpaces) {
+    // Find hub: space with highest importance concept
+    let hubSpace: Space | null = null;
+    let maxImportance = -1;
+    for (const space of spaces) {
+      const imp = importanceMap.get(space.concept_id) ?? 0;
+      if (imp > maxImportance) {
+        maxImportance = imp;
+        hubSpace = space;
+      }
+    }
+    if (!hubSpace) continue;
+
+    const pillar = buildSingleBeacon(scene, hubSpace);
+    beacons.push(pillar);
+  }
+
+  return beacons;
+}
+
+function buildSingleBeacon(scene: Scene, hubSpace: Space): Mesh {
+  const zoneColor = hexToColor3(hubSpace.zone_color);
+  const { position, size } = hubSpace;
+
+  // Beacon base position: center of the hub space, at floor level
+  const cx = position.x + size.width / 2;
+  const cz = position.z + size.depth / 2;
+  const baseY = position.y;
+
+  const pillarHeight = 20;
+  const pillarDiameter = 1.5;
+  const sphereDiameter = 3;
+  const beaconId = `beacon_${hubSpace.id}`;
+
+  // -- Tall cylindrical pillar --
+  const pillar = MeshBuilder.CreateCylinder(
+    `${beaconId}_pillar`,
+    {
+      height: pillarHeight,
+      diameter: pillarDiameter,
+      tessellation: 16,
+    },
+    scene,
+  );
+  const pillarMat = new StandardMaterial(`${beaconId}_pillarMat`, scene);
+  pillarMat.diffuseColor = zoneColor;
+  pillarMat.emissiveColor = zoneColor.scale(0.5);
+  pillarMat.specularColor = new Color3(0.2, 0.2, 0.2);
+  pillar.material = pillarMat;
+  pillar.position = new Vector3(cx, baseY + pillarHeight / 2, cz);
+  pillar.checkCollisions = true;
+
+  // -- Glowing sphere on top --
+  const sphere = MeshBuilder.CreateSphere(
+    `${beaconId}_sphere`,
+    { diameter: sphereDiameter, segments: 24 },
+    scene,
+  );
+  const sphereMat = new StandardMaterial(`${beaconId}_sphereMat`, scene);
+  sphereMat.diffuseColor = zoneColor;
+  sphereMat.emissiveColor = zoneColor.scale(0.8);
+  sphereMat.alpha = 0.6;
+  sphereMat.specularColor = new Color3(0.1, 0.1, 0.1);
+  sphere.material = sphereMat;
+  sphere.position = new Vector3(cx, baseY + pillarHeight + sphereDiameter / 2, cz);
+
+  // -- SpotLight pointing upward from sphere --
+  const spotLight = new SpotLight(
+    `${beaconId}_light`,
+    new Vector3(cx, baseY + pillarHeight + sphereDiameter, cz),
+    new Vector3(0, 1, 0),     // direction: straight up
+    Math.PI / 6,               // angle: 30-degree cone
+    2,                         // exponent
+    scene,
+  );
+  spotLight.intensity = 1.0;
+  spotLight.range = 50;
+  spotLight.diffuse = zoneColor;
+
+  // -- Particle system: upward emission from sphere --
+  const ps = new ParticleSystem(`${beaconId}_particles`, 20, scene);
+  ps.emitter = new Vector3(cx, baseY + pillarHeight + sphereDiameter / 2, cz);
+  ps.minSize = 0.08;
+  ps.maxSize = 0.2;
+  ps.minLifeTime = 1.5;
+  ps.maxLifeTime = 2.5;
+  ps.emitRate = 12;
+  ps.direction1 = new Vector3(-0.1, 1.0, -0.1);
+  ps.direction2 = new Vector3(0.1, 2.0, 0.1);
+  ps.gravity = new Vector3(0, 0.1, 0);  // slight upward drift
+  ps.color1 = new Color4(zoneColor.r, zoneColor.g, zoneColor.b, 1.0);
+  ps.color2 = new Color4(zoneColor.r, zoneColor.g, zoneColor.b, 0.6);
+  ps.colorDead = new Color4(zoneColor.r, zoneColor.g, zoneColor.b, 0.0);
+  ps.createPointEmitter(
+    new Vector3(-0.3, 0, -0.3),
+    new Vector3(0.3, 0.5, 0.3),
+  );
+  ps.start();
+
+  return pillar;
 }

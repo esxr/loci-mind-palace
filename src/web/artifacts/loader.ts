@@ -1,11 +1,12 @@
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
-import { Color3 } from "@babylonjs/core/Maths/math.color";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Scene } from "@babylonjs/core/scene";
+import { Color3 } from "@babylonjs/core/Maths/math.color";
 import "@babylonjs/loaders/glTF";
-import type { Artifact } from "../../shared/types";
+import type { Artifact, PalaceConfig } from "../../shared/types";
+import { createArtifactByCategory } from "./shapes";
 
 /**
  * Build a smooth pedestal mesh underneath an artifact's world position.
@@ -44,52 +45,64 @@ export function buildPedestal(
 }
 
 /**
- * Create a simple colored cube mesh as a placeholder when GLB loading fails.
- * The cube is tinted with a deterministic color derived from the artifact ID.
+ * Create a category-specific placeholder artifact.
+ * Called when GLB loading fails or glb_url is "/placeholder.glb".
+ *
+ * @param scene    Babylon.js scene
+ * @param artifact Artifact configuration
+ * @param config   Full PalaceConfig (needed to look up concept data)
  */
-function createPlaceholderArtifact(scene: Scene, artifact: Artifact): void {
-  let hash = 0;
-  for (let i = 0; i < artifact.id.length; i++) {
-    hash = ((hash << 5) - hash + artifact.id.charCodeAt(i)) | 0;
+function createPlaceholderArtifact(
+  scene: Scene,
+  artifact: Artifact,
+  config: PalaceConfig,
+): void {
+  // Look up concept data
+  const concept = config.concept_graph.concepts.find(
+    (c) => c.id === artifact.concept_id,
+  );
+  if (!concept) {
+    // Fallback to a plain box if concept not found
+    const box = MeshBuilder.CreateBox(
+      `placeholder_${artifact.id}`,
+      { size: 0.8 * artifact.scale },
+      scene,
+    );
+    box.position = new Vector3(
+      artifact.position.x,
+      artifact.position.y + artifact.pedestal.height + 0.5,
+      artifact.position.z,
+    );
+    return;
   }
-  const hue = Math.abs(hash % 360) / 360;
 
-  const box = MeshBuilder.CreateBox(
-    `placeholder_${artifact.id}`,
-    { size: 0.8 * artifact.scale },
-    scene
+  // Find zone color from the space
+  const space = config.spaces.find(
+    (s) => s.concept_id === artifact.concept_id,
   );
+  const zoneColor = space?.zone_color ?? "#888888";
 
-  const mat = new StandardMaterial(`placeholder_mat_${artifact.id}`, scene);
-  mat.diffuseColor = Color3.FromHSV(hue * 360, 0.7, 0.9);
-  mat.specularColor = new Color3(0.2, 0.2, 0.2);
-  box.material = mat;
-
-  box.position = new Vector3(
-    artifact.position.x,
-    artifact.position.y + artifact.pedestal.height + 0.5,
-    artifact.position.z
+  createArtifactByCategory(
+    scene,
+    concept,
+    zoneColor,
+    artifact.position,
+    artifact.pedestal.height,
   );
-  box.rotation.y = artifact.rotation_y;
-
-  // Slow spin animation for visual interest
-  scene.registerBeforeRender(() => {
-    if (!box.isDisposed()) {
-      box.rotation.y += 0.005;
-    }
-  });
 }
 
 /**
  * Load a GLB artifact mesh via Babylon.js SceneLoader and position it on its pedestal.
- * On failure, a colored placeholder cube is created instead.
+ * On failure, a category-specific placeholder is created instead.
  *
  * @param scene    Babylon.js scene
  * @param artifact Artifact configuration from PalaceConfig
+ * @param config   Full PalaceConfig (passed to placeholder for concept lookup)
  */
 export async function loadArtifact(
   scene: Scene,
-  artifact: Artifact
+  artifact: Artifact,
+  config: PalaceConfig,
 ): Promise<void> {
   try {
     const lastSlash = artifact.glb_url.lastIndexOf("/");
@@ -104,7 +117,7 @@ export async function loadArtifact(
       "",
       rootUrl,
       fileName,
-      scene
+      scene,
     );
 
     const root = result.meshes[0];
@@ -113,13 +126,13 @@ export async function loadArtifact(
     root.position = new Vector3(
       artifact.position.x,
       artifact.position.y + artifact.pedestal.height,
-      artifact.position.z
+      artifact.position.z,
     );
   } catch (err) {
     console.warn(
       `Failed to load artifact ${artifact.id} from ${artifact.glb_url}, using placeholder`,
-      err
+      err,
     );
-    createPlaceholderArtifact(scene, artifact);
+    createPlaceholderArtifact(scene, artifact, config);
   }
 }
