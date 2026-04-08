@@ -5,6 +5,7 @@
  *   /#/           → Library page (list of palaces)
  *   /#/library    → Library page
  *   /#/palace/:id → 3D palace viewer
+ *   /#/demo       → Demo palace loaded from /seed-palace.json (no backend required)
  */
 
 import { createEngine, registerBlocks } from "./engine/setup";
@@ -212,66 +213,79 @@ async function fetchPalaceConfig(palaceId: string): Promise<PalaceConfig> {
   return rows[0].palace_config;
 }
 
+/**
+ * Shared palace initialization — sets up engine, theme, world, NPCs, HUD, minimap.
+ * Used by both loadPalace (Supabase-backed) and loadDemo (seed JSON).
+ */
+async function initPalace(
+  config: PalaceConfig,
+  app: HTMLElement,
+  uiOverlay: HTMLElement,
+  palaceId?: string
+): Promise<void> {
+  // Get theme (use embedded theme from config, fallback to registry)
+  const theme = config.theme || getThemeById(config.metadata.theme_id);
+
+  // Create noa-engine bound to #app container
+  const noa = createEngine(app);
+
+  // Register block types from theme palette
+  const blockMap = registerBlocks(noa, theme);
+
+  // Apply theme visuals (lighting, fog, skybox, particles)
+  applyTheme(noa, theme, blockMap);
+
+  // Generate world geometry (spaces, paths, pedestals, artifacts)
+  await generateWorld(noa, config, blockMap);
+
+  // Create NPCManager and spawn all NPCs
+  const apiEndpoint = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1` : "";
+  const npcManager = new NPCManager(noa, palaceId || "__demo__", apiEndpoint);
+  npcManager.spawnAll(config.npcs);
+
+  // Create HUD (crosshair, interaction prompt, etc.)
+  const hud = new HUD();
+
+  // Create minimap
+  const minimap = new Minimap(config);
+
+  // Hook minimap updates into the game loop
+  noa.on("tick", () => {
+    const pos = noa.entities.getPositionData(noa.playerEntity)?.position;
+    if (pos) {
+      minimap.update(pos[0], pos[2]);
+    }
+  });
+
+  // Request pointer lock on canvas click for FPS controls
+  const canvas = app.querySelector("canvas");
+  if (canvas) {
+    canvas.addEventListener("click", () => {
+      if (!document.pointerLockElement) {
+        canvas.requestPointerLock();
+      }
+    });
+  }
+}
+
 async function loadPalace(
   palaceId: string,
   app: HTMLElement,
   uiOverlay: HTMLElement
 ): Promise<void> {
-  // 1. Show loading screen
+  // If Supabase is not configured, show a helpful message
+  if (!SUPABASE_URL) {
+    showErrorOverlay(app, "Configure SUPABASE_URL to connect to backend");
+    return;
+  }
+
   const loadingOverlay = showLoadingScreen(app);
 
   try {
-    // 2. Fetch palace config from Supabase
     const palaceConfig = await fetchPalaceConfig(palaceId);
-
-    // 3. Get theme (use embedded theme from config, fallback to registry)
-    const theme = palaceConfig.theme || getThemeById(palaceConfig.metadata.theme_id);
-
-    // 4. Create noa-engine bound to #app container
-    const noa = createEngine(app);
-
-    // 5. Register block types from theme palette
-    const blockMap = registerBlocks(noa, theme);
-
-    // 6. Apply theme visuals (lighting, fog, skybox, particles)
-    applyTheme(noa, theme, blockMap);
-
-    // 7. Generate world geometry (spaces, paths, pedestals, artifacts)
-    await generateWorld(noa, palaceConfig, blockMap);
-
-    // 8. Create NPCManager and spawn all NPCs
-    const apiEndpoint = `${SUPABASE_URL}/functions/v1`;
-    const npcManager = new NPCManager(noa, palaceId, apiEndpoint);
-    npcManager.spawnAll(palaceConfig.npcs);
-
-    // 9. Create HUD (crosshair, interaction prompt, etc.)
-    const hud = new HUD();
-
-    // 10. Create minimap
-    const minimap = new Minimap(palaceConfig);
-
-    // 11. Hook minimap updates into the game loop
-    noa.on("tick", () => {
-      const pos = noa.entities.getPositionData(noa.playerEntity)?.position;
-      if (pos) {
-        minimap.update(pos[0], pos[2]);
-      }
-    });
-
-    // 12. Hide loading screen
+    await initPalace(palaceConfig, app, uiOverlay, palaceId);
     hideLoadingScreen(loadingOverlay);
-
-    // 13. Request pointer lock on canvas click for FPS controls
-    const canvas = app.querySelector("canvas");
-    if (canvas) {
-      canvas.addEventListener("click", () => {
-        if (!document.pointerLockElement) {
-          canvas.requestPointerLock();
-        }
-      });
-    }
   } catch (err) {
-    // Remove loading screen, show error
     if (loadingOverlay.parentNode) loadingOverlay.remove();
     const message = err instanceof Error ? err.message : "An unknown error occurred";
     showErrorOverlay(app, message);
@@ -279,11 +293,68 @@ async function loadPalace(
   }
 }
 
+// ── Demo mode ────────────────────────────────────────────────────────────────
+
+async function loadDemo(app: HTMLElement, uiOverlay: HTMLElement): Promise<void> {
+  const loadingOverlay = showLoadingScreen(app);
+
+  try {
+    const response = await fetch("/seed-palace.json");
+    if (!response.ok) {
+      throw new Error(`Failed to fetch seed palace: ${response.status} ${response.statusText}`);
+    }
+    const config: PalaceConfig = await response.json();
+    await initPalace(config, app, uiOverlay);
+    hideLoadingScreen(loadingOverlay);
+  } catch (err) {
+    if (loadingOverlay.parentNode) loadingOverlay.remove();
+    const message = err instanceof Error ? err.message : "An unknown error occurred";
+    showErrorOverlay(app, message);
+    console.error("Failed to load demo palace:", err);
+  }
+}
+
 // ── Library page ─────────────────────────────────────────────────────────────
 
 function showLibrary(app: HTMLElement, _uiOverlay: HTMLElement): void {
   const library = new Library(SUPABASE_URL, SUPABASE_ANON_KEY);
-  library.render(app);
+  library.render(app).then(() => {
+    // After library renders, inject "Try Demo Palace" button
+    const content = app.querySelector(".loci-library-content");
+    if (!content) return;
+
+    // Show a notice when Supabase is not configured
+    if (!SUPABASE_URL) {
+      const notice = document.createElement("div");
+      notice.className = "loci-library-notice";
+      notice.innerHTML = `
+        <p style="text-align:center; color:#888898; font-size:14px; padding:12px 0 0;">
+          Configure SUPABASE_URL to connect to backend
+        </p>
+      `;
+      content.prepend(notice);
+    }
+
+    // Add a "Try Demo Palace" button if one doesn't already exist via the footer
+    let footer = content.querySelector(".loci-library-footer") as HTMLDivElement | null;
+    if (!footer) {
+      footer = document.createElement("div");
+      footer.className = "loci-library-footer";
+      content.appendChild(footer);
+    }
+
+    // Avoid duplicates — only add if no demo-palace button exists
+    if (!footer.querySelector(".loci-library-demo-palace-btn")) {
+      const demoBtn = document.createElement("button");
+      demoBtn.className = "loci-library-demo-btn loci-library-demo-palace-btn";
+      demoBtn.textContent = "Try Demo Palace";
+      demoBtn.style.marginLeft = "12px";
+      demoBtn.addEventListener("click", () => {
+        window.location.hash = "#/demo";
+      });
+      footer.appendChild(demoBtn);
+    }
+  });
 }
 
 // ── Router ───────────────────────────────────────────────────────────────────
@@ -299,7 +370,9 @@ async function main(): Promise<void> {
   const prevError = document.getElementById("loci-error-overlay");
   if (prevError) prevError.remove();
 
-  if (hash.startsWith("#/palace/")) {
+  if (hash === "#/demo") {
+    await loadDemo(app, uiOverlay);
+  } else if (hash.startsWith("#/palace/")) {
     const palaceId = hash.replace("#/palace/", "");
     if (!palaceId) {
       showErrorOverlay(app, "No palace ID provided in the URL.");

@@ -1,0 +1,780 @@
+{
+  "schema_version": 1,
+  "palace_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "seed": 42,
+  "theme": {
+    "id": "nature",
+    "name": "Nature Garden",
+    "palette": {
+      "ground": [{ "id": "grass", "color": [86, 170, 48], "texture_url": null }],
+      "walls": [
+        { "id": "oak_log", "color": [110, 80, 40], "texture_url": null },
+        { "id": "leaves", "color": [55, 130, 40], "texture_url": null }
+      ],
+      "paths": [{ "id": "stone_path", "color": [140, 140, 130], "texture_url": null }],
+      "accent": [
+        { "id": "flower_red", "color": [200, 50, 50], "texture_url": null },
+        { "id": "flower_yellow", "color": [230, 200, 50], "texture_url": null }
+      ],
+      "pedestal": [{ "id": "mossy_stone", "color": [100, 120, 90], "texture_url": null }]
+    },
+    "lighting": {
+      "ambient": { "color": "#fffbe6", "intensity": 0.6 },
+      "directional": { "color": "#fff5cc", "intensity": 0.8, "direction": [-0.5, -1, -0.3] }
+    },
+    "fog": { "color": "#c8e6c8", "near": 40, "far": 100 },
+    "particles": [{ "type": "fireflies", "density": 0.3, "color": "#aaff66" }],
+    "space_shape": "organic",
+    "path_style": "trails",
+    "npc_style": {
+      "default_style": "forest_sage",
+      "palette_template": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" }
+    },
+    "pedestal_style": { "default_block": "mossy_stone", "default_width": 3, "default_height": 1 },
+    "skybox": { "type": "gradient", "top_color": "#87ceeb", "bottom_color": "#e0f7e0" }
+  },
+  "metadata": {
+    "name": "Biology 101",
+    "created_at": "2026-04-08T12:00:00.000Z",
+    "concept_count": 10,
+    "theme_id": "nature",
+    "generation_time_ms": 3200
+  },
+  "concept_graph": {
+    "concepts": [
+      {
+        "id": "cell_structure",
+        "name": "Cell Structure",
+        "description": "The cell is the fundamental unit of life. Eukaryotic cells contain membrane-bound organelles that compartmentalize functions including energy production, protein synthesis, and genetic storage.",
+        "importance": 9,
+        "cluster_label": "cell_biology",
+        "source_notes": ["cell-structure"],
+        "spatial_hint": "central",
+        "display_size": "large"
+      },
+      {
+        "id": "dna",
+        "name": "DNA",
+        "description": "Deoxyribonucleic acid is the double-helical molecule that stores and transmits hereditary information through complementary base pairing, encoding genes that direct protein synthesis and cellular function.",
+        "importance": 10,
+        "cluster_label": "genetics",
+        "source_notes": ["dna"],
+        "spatial_hint": "central",
+        "display_size": "large"
+      },
+      {
+        "id": "mitochondria",
+        "name": "Mitochondria",
+        "description": "Double-membrane organelles that generate most of the cell's ATP through oxidative phosphorylation. They possess their own circular DNA, supporting the endosymbiotic theory of their bacterial origin.",
+        "importance": 8,
+        "cluster_label": "cell_biology",
+        "source_notes": ["mitochondria"],
+        "spatial_hint": "standard",
+        "display_size": "medium"
+      },
+      {
+        "id": "proteins",
+        "name": "Proteins",
+        "description": "Large macromolecules composed of amino acid chains that serve as enzymes, structural components, transport carriers, and signaling molecules. Their function depends on precise three-dimensional folding.",
+        "importance": 8,
+        "cluster_label": "molecular_biology",
+        "source_notes": ["proteins"],
+        "spatial_hint": "gateway",
+        "display_size": "medium"
+      },
+      {
+        "id": "evolution",
+        "name": "Evolution",
+        "description": "The change in heritable characteristics within populations over successive generations, driven by natural selection, genetic drift, gene flow, and mutation. It is the unifying theory of biology.",
+        "importance": 9,
+        "cluster_label": "evolution",
+        "source_notes": ["evolution"],
+        "spatial_hint": "central",
+        "display_size": "large"
+      },
+      {
+        "id": "photosynthesis",
+        "name": "Photosynthesis",
+        "description": "The biological process by which plants, algae, and cyanobacteria convert light energy into chemical energy stored in glucose, releasing oxygen as a byproduct. It is the energetic foundation of nearly all ecosystems.",
+        "importance": 7,
+        "cluster_label": "physiology",
+        "source_notes": ["photosynthesis"],
+        "spatial_hint": "standard",
+        "display_size": "medium"
+      },
+      {
+        "id": "mutations",
+        "name": "Mutations",
+        "description": "Heritable changes in the DNA nucleotide sequence that serve as the ultimate source of all genetic variation. They range from single-nucleotide point mutations to large chromosomal rearrangements.",
+        "importance": 6,
+        "cluster_label": "genetics",
+        "source_notes": ["mutations"],
+        "spatial_hint": "peripheral",
+        "display_size": "small"
+      },
+      {
+        "id": "enzymes",
+        "name": "Enzymes",
+        "description": "Biological catalysts, predominantly proteins, that accelerate chemical reactions by lowering activation energy. They are central to virtually every aspect of metabolism.",
+        "importance": 7,
+        "cluster_label": "molecular_biology",
+        "source_notes": ["enzymes"],
+        "spatial_hint": "standard",
+        "display_size": "medium"
+      },
+      {
+        "id": "cell_membrane",
+        "name": "Cell Membrane",
+        "description": "The selectively permeable phospholipid bilayer enclosing every living cell, regulating molecular transport, cell signaling, and cell-cell recognition through embedded proteins and cholesterol.",
+        "importance": 7,
+        "cluster_label": "cell_biology",
+        "source_notes": ["cell-membrane"],
+        "spatial_hint": "gateway",
+        "display_size": "medium"
+      },
+      {
+        "id": "natural_selection",
+        "name": "Natural Selection",
+        "description": "The mechanism of evolution by which organisms with heritable traits conferring survival or reproductive advantage leave more offspring, increasing the frequency of those traits in subsequent generations.",
+        "importance": 8,
+        "cluster_label": "evolution",
+        "source_notes": ["natural-selection"],
+        "spatial_hint": "standard",
+        "display_size": "medium"
+      }
+    ],
+    "relationships": [
+      {
+        "source_id": "dna",
+        "target_id": "mutations",
+        "type": "contains",
+        "strength": 9,
+        "corridor_style": "wide"
+      },
+      {
+        "source_id": "dna",
+        "target_id": "proteins",
+        "type": "prerequisite",
+        "strength": 9,
+        "corridor_style": "wide"
+      },
+      {
+        "source_id": "dna",
+        "target_id": "cell_structure",
+        "type": "contains",
+        "strength": 8,
+        "corridor_style": "wide"
+      },
+      {
+        "source_id": "cell_structure",
+        "target_id": "mitochondria",
+        "type": "contains",
+        "strength": 8,
+        "corridor_style": "wide"
+      },
+      {
+        "source_id": "cell_structure",
+        "target_id": "cell_membrane",
+        "type": "contains",
+        "strength": 8,
+        "corridor_style": "wide"
+      },
+      {
+        "source_id": "proteins",
+        "target_id": "enzymes",
+        "type": "contains",
+        "strength": 9,
+        "corridor_style": "wide"
+      },
+      {
+        "source_id": "evolution",
+        "target_id": "natural_selection",
+        "type": "contains",
+        "strength": 10,
+        "corridor_style": "wide"
+      },
+      {
+        "source_id": "evolution",
+        "target_id": "mutations",
+        "type": "prerequisite",
+        "strength": 7,
+        "corridor_style": "narrow"
+      },
+      {
+        "source_id": "mutations",
+        "target_id": "natural_selection",
+        "type": "prerequisite",
+        "strength": 7,
+        "corridor_style": "narrow"
+      },
+      {
+        "source_id": "photosynthesis",
+        "target_id": "enzymes",
+        "type": "relates_to",
+        "strength": 6,
+        "corridor_style": "narrow"
+      },
+      {
+        "source_id": "mitochondria",
+        "target_id": "photosynthesis",
+        "type": "relates_to",
+        "strength": 6,
+        "corridor_style": "narrow"
+      },
+      {
+        "source_id": "cell_membrane",
+        "target_id": "proteins",
+        "type": "relates_to",
+        "strength": 7,
+        "corridor_style": "narrow"
+      }
+    ]
+  },
+  "spaces": [
+    {
+      "id": "dna",
+      "concept_id": "dna",
+      "position": { "x": 0, "y": 0, "z": 0 },
+      "size": { "width": 16, "height": 6, "depth": 16 },
+      "shape": "organic",
+      "zone_id": 0,
+      "floor_block": "grass",
+      "wall_block": "oak_log",
+      "ceiling_block": null,
+      "has_ceiling": false
+    },
+    {
+      "id": "cell_structure",
+      "concept_id": "cell_structure",
+      "position": { "x": -40, "y": 0, "z": -30 },
+      "size": { "width": 16, "height": 6, "depth": 16 },
+      "shape": "organic",
+      "zone_id": 1,
+      "floor_block": "grass",
+      "wall_block": "oak_log",
+      "ceiling_block": null,
+      "has_ceiling": false
+    },
+    {
+      "id": "mitochondria",
+      "concept_id": "mitochondria",
+      "position": { "x": 40, "y": 0, "z": -30 },
+      "size": { "width": 12, "height": 6, "depth": 12 },
+      "shape": "organic",
+      "zone_id": 1,
+      "floor_block": "grass",
+      "wall_block": "leaves",
+      "ceiling_block": null,
+      "has_ceiling": false
+    },
+    {
+      "id": "proteins",
+      "concept_id": "proteins",
+      "position": { "x": 0, "y": 0, "z": -60 },
+      "size": { "width": 12, "height": 6, "depth": 12 },
+      "shape": "organic",
+      "zone_id": 2,
+      "floor_block": "grass",
+      "wall_block": "oak_log",
+      "ceiling_block": null,
+      "has_ceiling": false
+    },
+    {
+      "id": "evolution",
+      "concept_id": "evolution",
+      "position": { "x": 60, "y": 0, "z": 20 },
+      "size": { "width": 16, "height": 6, "depth": 16 },
+      "shape": "organic",
+      "zone_id": 3,
+      "floor_block": "grass",
+      "wall_block": "oak_log",
+      "ceiling_block": null,
+      "has_ceiling": false
+    },
+    {
+      "id": "photosynthesis",
+      "concept_id": "photosynthesis",
+      "position": { "x": -60, "y": 0, "z": 20 },
+      "size": { "width": 12, "height": 6, "depth": 12 },
+      "shape": "organic",
+      "zone_id": 4,
+      "floor_block": "grass",
+      "wall_block": "leaves",
+      "ceiling_block": null,
+      "has_ceiling": false
+    },
+    {
+      "id": "mutations",
+      "concept_id": "mutations",
+      "position": { "x": 30, "y": 0, "z": 60 },
+      "size": { "width": 8, "height": 6, "depth": 8 },
+      "shape": "organic",
+      "zone_id": 0,
+      "floor_block": "grass",
+      "wall_block": "leaves",
+      "ceiling_block": null,
+      "has_ceiling": false
+    },
+    {
+      "id": "enzymes",
+      "concept_id": "enzymes",
+      "position": { "x": -30, "y": 0, "z": 60 },
+      "size": { "width": 12, "height": 6, "depth": 12 },
+      "shape": "organic",
+      "zone_id": 2,
+      "floor_block": "grass",
+      "wall_block": "oak_log",
+      "ceiling_block": null,
+      "has_ceiling": false
+    },
+    {
+      "id": "cell_membrane",
+      "concept_id": "cell_membrane",
+      "position": { "x": -40, "y": 0, "z": 30 },
+      "size": { "width": 12, "height": 6, "depth": 12 },
+      "shape": "organic",
+      "zone_id": 1,
+      "floor_block": "grass",
+      "wall_block": "leaves",
+      "ceiling_block": null,
+      "has_ceiling": false
+    },
+    {
+      "id": "natural_selection",
+      "concept_id": "natural_selection",
+      "position": { "x": 60, "y": 0, "z": 60 },
+      "size": { "width": 12, "height": 6, "depth": 12 },
+      "shape": "organic",
+      "zone_id": 3,
+      "floor_block": "grass",
+      "wall_block": "oak_log",
+      "ceiling_block": null,
+      "has_ceiling": false
+    }
+  ],
+  "paths": [
+    {
+      "id": "dna_to_mutations",
+      "source_space_id": "dna",
+      "target_space_id": "mutations",
+      "waypoints": [
+        { "x": 8, "y": 0, "z": 16 },
+        { "x": 20, "y": 0, "z": 40 },
+        { "x": 30, "y": 0, "z": 60 }
+      ],
+      "width": 4,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "dna_to_proteins",
+      "source_space_id": "dna",
+      "target_space_id": "proteins",
+      "waypoints": [
+        { "x": 8, "y": 0, "z": 0 },
+        { "x": 6, "y": 0, "z": -30 },
+        { "x": 6, "y": 0, "z": -60 }
+      ],
+      "width": 4,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "dna_to_cell_structure",
+      "source_space_id": "dna",
+      "target_space_id": "cell_structure",
+      "waypoints": [
+        { "x": 0, "y": 0, "z": 0 },
+        { "x": -20, "y": 0, "z": -15 },
+        { "x": -40, "y": 0, "z": -30 }
+      ],
+      "width": 4,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "cell_structure_to_mitochondria",
+      "source_space_id": "cell_structure",
+      "target_space_id": "mitochondria",
+      "waypoints": [
+        { "x": -24, "y": 0, "z": -30 },
+        { "x": 0, "y": 0, "z": -35 },
+        { "x": 40, "y": 0, "z": -30 }
+      ],
+      "width": 4,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "cell_structure_to_cell_membrane",
+      "source_space_id": "cell_structure",
+      "target_space_id": "cell_membrane",
+      "waypoints": [
+        { "x": -40, "y": 0, "z": -14 },
+        { "x": -42, "y": 0, "z": 10 },
+        { "x": -40, "y": 0, "z": 30 }
+      ],
+      "width": 4,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "proteins_to_enzymes",
+      "source_space_id": "proteins",
+      "target_space_id": "enzymes",
+      "waypoints": [
+        { "x": 0, "y": 0, "z": -48 },
+        { "x": -15, "y": 0, "z": 0 },
+        { "x": -30, "y": 0, "z": 60 }
+      ],
+      "width": 4,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "evolution_to_natural_selection",
+      "source_space_id": "evolution",
+      "target_space_id": "natural_selection",
+      "waypoints": [
+        { "x": 68, "y": 0, "z": 36 },
+        { "x": 66, "y": 0, "z": 48 },
+        { "x": 66, "y": 0, "z": 60 }
+      ],
+      "width": 4,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "evolution_to_mutations",
+      "source_space_id": "evolution",
+      "target_space_id": "mutations",
+      "waypoints": [
+        { "x": 60, "y": 0, "z": 36 },
+        { "x": 45, "y": 0, "z": 50 },
+        { "x": 34, "y": 0, "z": 60 }
+      ],
+      "width": 2,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "mutations_to_natural_selection",
+      "source_space_id": "mutations",
+      "target_space_id": "natural_selection",
+      "waypoints": [
+        { "x": 38, "y": 0, "z": 64 },
+        { "x": 50, "y": 0, "z": 64 },
+        { "x": 60, "y": 0, "z": 64 }
+      ],
+      "width": 2,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "photosynthesis_to_enzymes",
+      "source_space_id": "photosynthesis",
+      "target_space_id": "enzymes",
+      "waypoints": [
+        { "x": -54, "y": 0, "z": 32 },
+        { "x": -42, "y": 0, "z": 46 },
+        { "x": -30, "y": 0, "z": 60 }
+      ],
+      "width": 2,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "mitochondria_to_photosynthesis",
+      "source_space_id": "mitochondria",
+      "target_space_id": "photosynthesis",
+      "waypoints": [
+        { "x": 40, "y": 0, "z": -18 },
+        { "x": 0, "y": 0, "z": 0 },
+        { "x": -60, "y": 0, "z": 20 }
+      ],
+      "width": 2,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    },
+    {
+      "id": "cell_membrane_to_proteins",
+      "source_space_id": "cell_membrane",
+      "target_space_id": "proteins",
+      "waypoints": [
+        { "x": -34, "y": 0, "z": 30 },
+        { "x": -18, "y": 0, "z": -15 },
+        { "x": 0, "y": 0, "z": -60 }
+      ],
+      "width": 2,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "dna_artifact",
+      "concept_id": "dna",
+      "position": { "x": 8, "y": 1, "z": 8 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    },
+    {
+      "id": "cell_structure_artifact",
+      "concept_id": "cell_structure",
+      "position": { "x": -32, "y": 1, "z": -22 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    },
+    {
+      "id": "mitochondria_artifact",
+      "concept_id": "mitochondria",
+      "position": { "x": 46, "y": 1, "z": -24 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    },
+    {
+      "id": "proteins_artifact",
+      "concept_id": "proteins",
+      "position": { "x": 6, "y": 1, "z": -54 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    },
+    {
+      "id": "evolution_artifact",
+      "concept_id": "evolution",
+      "position": { "x": 68, "y": 1, "z": 28 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    },
+    {
+      "id": "photosynthesis_artifact",
+      "concept_id": "photosynthesis",
+      "position": { "x": -54, "y": 1, "z": 26 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    },
+    {
+      "id": "mutations_artifact",
+      "concept_id": "mutations",
+      "position": { "x": 34, "y": 1, "z": 64 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    },
+    {
+      "id": "enzymes_artifact",
+      "concept_id": "enzymes",
+      "position": { "x": -24, "y": 1, "z": 66 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    },
+    {
+      "id": "cell_membrane_artifact",
+      "concept_id": "cell_membrane",
+      "position": { "x": -34, "y": 1, "z": 36 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    },
+    {
+      "id": "natural_selection_artifact",
+      "concept_id": "natural_selection",
+      "position": { "x": 66, "y": 1, "z": 66 },
+      "glb_url": "/placeholder.glb",
+      "scale": 1.0,
+      "rotation_y": 0.0,
+      "pedestal": { "block": "mossy_stone", "width": 3, "height": 1 }
+    }
+  ],
+  "npcs": [
+    {
+      "id": "dna_npc",
+      "concept_id": "dna",
+      "name": "DNA",
+      "position": { "x": 4, "y": 0, "z": 12 },
+      "facing": 3.14,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "Deoxyribonucleic acid is the double-helical molecule that stores and transmits hereditary information through complementary base pairing, encoding genes that direct protein synthesis and cellular function.",
+        "neighbor_ids": ["mutations", "proteins", "cell_structure"]
+      }
+    },
+    {
+      "id": "cell_structure_npc",
+      "concept_id": "cell_structure",
+      "name": "Cell Structure",
+      "position": { "x": -36, "y": 0, "z": -18 },
+      "facing": 0.78,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "The cell is the fundamental unit of life. Eukaryotic cells contain membrane-bound organelles that compartmentalize functions including energy production, protein synthesis, and genetic storage.",
+        "neighbor_ids": ["dna", "mitochondria", "cell_membrane"]
+      }
+    },
+    {
+      "id": "mitochondria_npc",
+      "concept_id": "mitochondria",
+      "name": "Mitochondria",
+      "position": { "x": 44, "y": 0, "z": -20 },
+      "facing": 2.36,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "Double-membrane organelles that generate most of the cell's ATP through oxidative phosphorylation. They possess their own circular DNA, supporting the endosymbiotic theory of their bacterial origin.",
+        "neighbor_ids": ["cell_structure", "photosynthesis"]
+      }
+    },
+    {
+      "id": "proteins_npc",
+      "concept_id": "proteins",
+      "name": "Proteins",
+      "position": { "x": 4, "y": 0, "z": -50 },
+      "facing": 3.14,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "Large macromolecules composed of amino acid chains that serve as enzymes, structural components, transport carriers, and signaling molecules. Their function depends on precise three-dimensional folding.",
+        "neighbor_ids": ["dna", "enzymes", "cell_membrane"]
+      }
+    },
+    {
+      "id": "evolution_npc",
+      "concept_id": "evolution",
+      "name": "Evolution",
+      "position": { "x": 64, "y": 0, "z": 32 },
+      "facing": 3.93,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "The change in heritable characteristics within populations over successive generations, driven by natural selection, genetic drift, gene flow, and mutation. It is the unifying theory of biology.",
+        "neighbor_ids": ["natural_selection", "mutations"]
+      }
+    },
+    {
+      "id": "photosynthesis_npc",
+      "concept_id": "photosynthesis",
+      "name": "Photosynthesis",
+      "position": { "x": -56, "y": 0, "z": 28 },
+      "facing": 0.39,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "The biological process by which plants, algae, and cyanobacteria convert light energy into chemical energy stored in glucose, releasing oxygen as a byproduct. It is the energetic foundation of nearly all ecosystems.",
+        "neighbor_ids": ["enzymes", "mitochondria"]
+      }
+    },
+    {
+      "id": "mutations_npc",
+      "concept_id": "mutations",
+      "name": "Mutations",
+      "position": { "x": 32, "y": 0, "z": 62 },
+      "facing": 5.50,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "Heritable changes in the DNA nucleotide sequence that serve as the ultimate source of all genetic variation. They range from single-nucleotide point mutations to large chromosomal rearrangements.",
+        "neighbor_ids": ["dna", "evolution", "natural_selection"]
+      }
+    },
+    {
+      "id": "enzymes_npc",
+      "concept_id": "enzymes",
+      "name": "Enzymes",
+      "position": { "x": -26, "y": 0, "z": 64 },
+      "facing": 0.0,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "Biological catalysts, predominantly proteins, that accelerate chemical reactions by lowering activation energy. They are central to virtually every aspect of metabolism.",
+        "neighbor_ids": ["proteins", "photosynthesis"]
+      }
+    },
+    {
+      "id": "cell_membrane_npc",
+      "concept_id": "cell_membrane",
+      "name": "Cell Membrane",
+      "position": { "x": -36, "y": 0, "z": 34 },
+      "facing": 0.78,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "The selectively permeable phospholipid bilayer enclosing every living cell, regulating molecular transport, cell signaling, and cell-cell recognition through embedded proteins and cholesterol.",
+        "neighbor_ids": ["cell_structure", "proteins"]
+      }
+    },
+    {
+      "id": "natural_selection_npc",
+      "concept_id": "natural_selection",
+      "name": "Natural Selection",
+      "position": { "x": 64, "y": 0, "z": 64 },
+      "facing": 3.93,
+      "voxel_model": {
+        "style": "forest_sage",
+        "palette": { "body": "#5b8c3e", "head": "#8bc34a", "accent": "#ffeb3b" },
+        "height_blocks": 3
+      },
+      "dialogue_context": {
+        "concept_description": "The mechanism of evolution by which organisms with heritable traits conferring survival or reproductive advantage leave more offspring, increasing the frequency of those traits in subsequent generations.",
+        "neighbor_ids": ["evolution", "mutations"]
+      }
+    }
+  ],
+  "spawn_point": { "x": 8, "y": 0, "z": 20 }
+}

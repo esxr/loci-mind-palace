@@ -185,6 +185,8 @@
   },
   "active": "c5e2369996032616",
   "lastOpenFiles": [
+    "public/seed-palace.json",
+    "proof-of-work",
     "dist/index.html",
     "dist/assets/index-CV7U-n6q.js",
     "dist/assets",
@@ -194,8 +196,6 @@
     "src/web/vite-env.d.ts",
     "src/web/ui/minimap.ts",
     "src/web/ui/library.ts",
-    "src/web/main.ts",
-    "src/functions/generate-palace/index.ts",
     "pitch-deck/video-script.md",
     "node_modules/fsevents/README.md",
     "node_modules/aabb-3d/README.md",
