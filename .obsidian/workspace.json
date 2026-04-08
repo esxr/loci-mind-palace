@@ -185,6 +185,8 @@
   },
   "active": "c5e2369996032616",
   "lastOpenFiles": [
+    "proof-of-work/17-grid-layout.png",
+    "17-grid-layout.png",
     "verify_tiny.png",
     "verify_sections.png",
     "all_three_verify.png",
@@ -200,8 +202,6 @@
     "src/web/artifacts/shapes.ts",
     "src/web/world/breadcrumbs.ts",
     "docs/EIS/spatial-grammar.md",
-    "pitch-deck/img/theme_space_alt.gif",
-    "pitch-deck/img/theme_library.gif",
     "src/web/world/props.ts",
     "src/web/world/zones.ts",
     "docs/EIS/renderer-rewrite.md",
