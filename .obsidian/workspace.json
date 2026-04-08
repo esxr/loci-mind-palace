@@ -185,6 +185,13 @@
   },
   "active": "c5e2369996032616",
   "lastOpenFiles": [
+    "src/web/world/props.ts",
+    "src/web/world/zones.ts",
+    "docs/EIS/renderer-rewrite.md",
+    "pitch-deck/img/valorant_gameplay.mp4",
+    "pitch-deck/img/cs_gameplay.mp4",
+    "pitch-deck/img/valorant_gameplay.gif",
+    "pitch-deck/img/cs_gameplay.gif",
     "proof-of-work/13-babylonjs-library.png",
     "13-babylonjs-library.png",
     "proof-of-work/12-babylonjs-demo.png",
@@ -199,14 +206,8 @@
     "10-localhost-demo-blocks.png",
     "src/web/world/blockStore.ts",
     "supabase/migrations/002_rls_policies.sql",
-    "proof-of-work/07-vercel-library.png",
-    "proof-of-work/06-demo-3d-final.png",
-    "proof-of-work/05-library-with-supabase.png",
     "proof-of-work/REPORT.md",
     "dist/assets/index-BDUAEarH.js",
-    "dist/seed-palace.json",
-    "supabase/functions/npc-chat/index.ts",
-    "supabase/functions/ingest/index.ts",
     "pitch-deck/video-script.md",
     "node_modules/fsevents/README.md",
     "node_modules/aabb-3d/README.md",
@@ -229,7 +230,6 @@
     "node_modules/typescript/README.md",
     "node_modules/rot-js/README.md",
     "node_modules/vite/node_modules/esbuild/README.md",
-    "node_modules/vite/node_modules/esbuild/LICENSE.md",
-    "node_modules/@babylonjs/loaders/readme.md"
+    "node_modules/vite/node_modules/esbuild/LICENSE.md"
   ]
 }

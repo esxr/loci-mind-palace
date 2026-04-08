@@ -2,6 +2,7 @@ import type { PalaceConfig, Space } from "../../shared/types";
 import type { GameEngine } from "../engine/setup";
 import { buildSpace } from "./spaces";
 import { buildPath } from "./paths";
+import { buildZoneArchways } from "./zones";
 import { buildPedestal, loadArtifact } from "../artifacts/loader";
 import {
   MeshBuilder,
@@ -149,13 +150,16 @@ export async function generateWorld(
     buildPath(scene, path, materials);
   }
 
-  // 4. Build pedestals and load artifacts
+  // 4. Build zone transition archways
+  buildZoneArchways(scene, config, materials);
+
+  // 5. Build pedestals and load artifacts
   for (const artifact of config.artifacts) {
     buildPedestal(scene, artifact, materials);
     await loadArtifact(scene, artifact);
   }
 
-  // 5. Set camera position at spawn point
+  // 6. Set camera position at spawn point
   const sp = config.spawn_point;
   camera.position = new Vector3(sp.x, sp.y + 2, sp.z);
   camera.rotation.x = 0.1; // Slightly looking down
