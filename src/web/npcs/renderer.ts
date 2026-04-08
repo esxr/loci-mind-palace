@@ -102,11 +102,8 @@ export function buildNPCMesh(
     false // not collidable with player
   );
 
-  // Attach the mesh to the entity via noa's mesh component
-  noa.entities.addComponentAgain(noa.entities.names.mesh, entityId, {
-    mesh: parent,
-    offset: [0, 0, 0],
-  });
+  // The mesh was already passed to noa.entities.add() above,
+  // so it's already attached — no need for addComponentAgain.
 
   return { entityId, mesh: parent };
 }
