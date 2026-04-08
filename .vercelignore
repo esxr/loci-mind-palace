@@ -1,0 +1,14 @@
+node_modules
+.git
+supabase
+.playwright-mcp
+.playwright-user-data
+*.md
+proof-of-work
+pitch-deck
+biology
+.claude
+*.png
+*.mp4
+.playwright-user-data
+dist/.vercel
