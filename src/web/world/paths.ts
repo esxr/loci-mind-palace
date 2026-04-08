@@ -3,9 +3,21 @@ import {
   MeshBuilder,
   Vector3,
   StandardMaterial,
+  Color3,
   Mesh,
 } from "@babylonjs/core";
 import type { Path, WorldPosition } from "../../shared/types";
+import { createLantern } from "./props";
+
+// ─── Road Hierarchy Classification ───
+
+type RoadClass = "boulevard" | "street" | "alley";
+
+function classifyRoad(width: number): RoadClass {
+  if (width >= 5) return "boulevard";
+  if (width >= 3) return "street";
+  return "alley";
+}
 
 /**
  * Linearly interpolate between two world positions, yielding positions
@@ -53,11 +65,53 @@ function perpendicularXZ(
 }
 
 /**
+ * Place lanterns every ~10 units along both sides of a boulevard segment.
+ */
+function placeBoulevardLanterns(
+  scene: Scene,
+  wpA: WorldPosition,
+  wpB: WorldPosition,
+  perpX: number,
+  perpZ: number,
+  width: number,
+  pathId: string,
+  segIdx: number
+): void {
+  const dx = wpB.x - wpA.x;
+  const dz = wpB.z - wpA.z;
+  const segLen = Math.sqrt(dx * dx + dz * dz);
+  if (segLen < 1) return;
+
+  const halfWidth = width / 2 + 0.5;
+  const spacing = 10;
+  const count = Math.max(1, Math.floor(segLen / spacing));
+
+  for (let n = 0; n <= count; n++) {
+    const t = count === 0 ? 0.5 : n / count;
+    const cx = wpA.x + dx * t;
+    const cz = wpA.z + dz * t;
+    const cy = wpA.y;
+
+    for (const side of [-1, 1]) {
+      const lx = cx + perpX * halfWidth * side;
+      const lz = cz + perpZ * halfWidth * side;
+      createLantern(
+        scene,
+        { x: lx, y: cy, z: lz },
+        `blvd_${pathId}_${segIdx}_${n}_${side > 0 ? "R" : "L"}`
+      );
+    }
+  }
+}
+
+/**
  * Build a path (corridor, trail, bridge, or tunnel) between two spaces
  * using smooth mesh strips.
  *
- * For each segment between consecutive waypoints, creates a floor ribbon
- * and optionally wall meshes for corridor/tunnel styles.
+ * Dispatches to different visual treatments based on road hierarchy:
+ *  - Boulevard (width >= 5): emissive floor glow, low border walls, lanterns
+ *  - Street (width 3-4): standard treatment (current)
+ *  - Alley (width 1-2): darker floor, no walls, narrow
  *
  * @param scene     Babylon.js scene
  * @param path      Path configuration from PalaceConfig
@@ -75,9 +129,28 @@ export function buildPath(
 
   const wallMat = wall_block ? materials.get(wall_block) : undefined;
 
+  const roadClass = classifyRoad(width);
+
   const needsWalls = style === "corridor" || style === "tunnel";
   const needsCeiling = style === "tunnel";
   const wallHeight = 3;
+
+  // ── Prepare road-class-specific materials ──
+
+  let activeFloorMat = floorMat;
+
+  if (roadClass === "boulevard") {
+    // Emissive glow floor for boulevards
+    const blvdMat = floorMat.clone(`${floorMat.name}_blvd_${path.id}`);
+    blvdMat.emissiveColor = new Color3(0.1, 0.1, 0.08);
+    activeFloorMat = blvdMat;
+  } else if (roadClass === "alley") {
+    // Darker floor for alleys — reduce diffuse brightness by 30%
+    const alleyMat = floorMat.clone(`${floorMat.name}_alley_${path.id}`);
+    const dc = alleyMat.diffuseColor;
+    alleyMat.diffuseColor = new Color3(dc.r * 0.7, dc.g * 0.7, dc.b * 0.7);
+    activeFloorMat = alleyMat;
+  }
 
   for (let i = 0; i < waypoints.length - 1; i++) {
     const wpA = waypoints[i];
@@ -106,11 +179,49 @@ export function buildPath(
     );
     floor.position = new Vector3(midX, midY + 0.01, midZ);
     floor.rotation.y = angle;
-    floor.material = floorMat;
+    floor.material = activeFloorMat;
     floor.checkCollisions = true;
 
-    // ── Walls (corridor / tunnel) ──
-    if (needsWalls && wallMat) {
+    // ── Boulevard extras: low border walls + lanterns ──
+    if (roadClass === "boulevard") {
+      const borderHeight = 0.5;
+      const borderThickness = 0.15;
+      const halfWidth = width / 2 + borderThickness;
+
+      for (const side of [-1, 1]) {
+        const wallOffsetX = perpX * halfWidth * side;
+        const wallOffsetZ = perpZ * halfWidth * side;
+
+        const border = MeshBuilder.CreateBox(
+          `pathBorder_${path.id}_${i}_${side > 0 ? "R" : "L"}`,
+          { width: borderThickness, height: borderHeight, depth: segLen + 0.5 },
+          scene
+        );
+        border.position = new Vector3(
+          midX + wallOffsetX,
+          midY + borderHeight / 2,
+          midZ + wallOffsetZ
+        );
+        border.rotation.y = angle;
+        border.material = wallMat ?? activeFloorMat;
+        border.checkCollisions = true;
+      }
+
+      // Place lanterns along the boulevard
+      placeBoulevardLanterns(
+        scene,
+        wpA,
+        wpB,
+        perpX,
+        perpZ,
+        width,
+        path.id,
+        i
+      );
+    }
+
+    // ── Walls (corridor / tunnel) — street only ──
+    if (needsWalls && wallMat && roadClass === "street") {
       const halfWidth = width / 2 + 0.15;
 
       for (const side of [-1, 1]) {

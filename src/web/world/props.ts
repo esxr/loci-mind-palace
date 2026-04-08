@@ -605,7 +605,7 @@ function createFlowerCluster(scene: Scene, pos: PropPosition, id: string): Mesh 
  * A hanging lantern: small box frame with a point light inside.
  * Dimensions: 0.25 x 0.35 x 0.25.
  */
-function createLantern(scene: Scene, pos: PropPosition, id: string): Mesh {
+export function createLantern(scene: Scene, pos: PropPosition, id: string): Mesh {
   const parent = new Mesh(`lantern_${id}`, scene);
 
   const frame = MeshBuilder.CreateBox(

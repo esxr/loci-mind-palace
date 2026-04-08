@@ -350,9 +350,9 @@
       "id": "dna",
       "concept_id": "dna",
       "position": {
-        "x": 0,
+        "x": 90,
         "y": 0,
-        "z": 0
+        "z": 15
       },
       "size": {
         "width": 16,
@@ -374,9 +374,9 @@
       "id": "cell_structure",
       "concept_id": "cell_structure",
       "position": {
-        "x": -40,
+        "x": 15,
         "y": 0,
-        "z": -30
+        "z": 15
       },
       "size": {
         "width": 16,
@@ -398,9 +398,9 @@
       "id": "mitochondria",
       "concept_id": "mitochondria",
       "position": {
-        "x": 40,
+        "x": 5,
         "y": 0,
-        "z": -30
+        "z": 5
       },
       "size": {
         "width": 12,
@@ -422,9 +422,9 @@
       "id": "proteins",
       "concept_id": "proteins",
       "position": {
-        "x": 0,
+        "x": 15,
         "y": 0,
-        "z": -60
+        "z": 95
       },
       "size": {
         "width": 12,
@@ -446,9 +446,9 @@
       "id": "evolution",
       "concept_id": "evolution",
       "position": {
-        "x": 60,
+        "x": 90,
         "y": 0,
-        "z": 20
+        "z": 95
       },
       "size": {
         "width": 16,
@@ -470,9 +470,9 @@
       "id": "photosynthesis",
       "concept_id": "photosynthesis",
       "position": {
-        "x": -60,
+        "x": 35,
         "y": 0,
-        "z": 20
+        "z": 5
       },
       "size": {
         "width": 12,
@@ -494,9 +494,9 @@
       "id": "mutations",
       "concept_id": "mutations",
       "position": {
-        "x": 30,
+        "x": 85,
         "y": 0,
-        "z": 60
+        "z": 40
       },
       "size": {
         "width": 8,
@@ -518,9 +518,9 @@
       "id": "enzymes",
       "concept_id": "enzymes",
       "position": {
-        "x": -30,
+        "x": 5,
         "y": 0,
-        "z": 60
+        "z": 85
       },
       "size": {
         "width": 12,
@@ -542,14 +542,14 @@
       "id": "cell_membrane",
       "concept_id": "cell_membrane",
       "position": {
-        "x": -40,
+        "x": 5,
         "y": 0,
-        "z": 30
+        "z": 35
       },
       "size": {
-        "width": 12,
+        "width": 8,
         "height": 6,
-        "depth": 12
+        "depth": 8
       },
       "shape": "organic",
       "zone_id": 1,
@@ -566,9 +566,9 @@
       "id": "natural_selection",
       "concept_id": "natural_selection",
       "position": {
-        "x": 60,
+        "x": 85,
         "y": 0,
-        "z": 60
+        "z": 80
       },
       "size": {
         "width": 12,
@@ -589,27 +589,275 @@
   ],
   "paths": [
     {
-      "id": "dna_to_mutations",
-      "source_space_id": "dna",
-      "target_space_id": "mutations",
+      "id": "cell_structure_to_plaza",
+      "source_space_id": "cell_structure",
+      "target_space_id": "dna",
       "waypoints": [
         {
-          "x": 8,
+          "x": 31,
           "y": 0,
-          "z": 16
+          "z": 23
         },
         {
-          "x": 20,
+          "x": 50,
+          "y": 0,
+          "z": 23
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "z": 50
+        }
+      ],
+      "width": 6,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail",
+      "direction": "forward"
+    },
+    {
+      "id": "dna_to_plaza",
+      "source_space_id": "dna",
+      "target_space_id": "cell_structure",
+      "waypoints": [
+        {
+          "x": 90,
+          "y": 0,
+          "z": 31
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "z": 50
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "z": 50
+        }
+      ],
+      "width": 6,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail",
+      "direction": "forward"
+    },
+    {
+      "id": "proteins_to_plaza",
+      "source_space_id": "proteins",
+      "target_space_id": "evolution",
+      "waypoints": [
+        {
+          "x": 27,
+          "y": 0,
+          "z": 95
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "z": 50
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "z": 50
+        }
+      ],
+      "width": 6,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail",
+      "direction": "forward"
+    },
+    {
+      "id": "evolution_to_plaza",
+      "source_space_id": "evolution",
+      "target_space_id": "proteins",
+      "waypoints": [
+        {
+          "x": 90,
+          "y": 0,
+          "z": 95
+        },
+        {
+          "x": 90,
+          "y": 0,
+          "z": 70
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "z": 70
+        },
+        {
+          "x": 50,
+          "y": 0,
+          "z": 50
+        }
+      ],
+      "width": 6,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail",
+      "direction": "forward"
+    },
+    {
+      "id": "mitochondria_to_cell_structure",
+      "source_space_id": "mitochondria",
+      "target_space_id": "cell_structure",
+      "waypoints": [
+        {
+          "x": 17,
+          "y": 0,
+          "z": 11
+        },
+        {
+          "x": 23,
+          "y": 0,
+          "z": 11
+        },
+        {
+          "x": 23,
+          "y": 0,
+          "z": 15
+        }
+      ],
+      "width": 3,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail",
+      "direction": "forward"
+    },
+    {
+      "id": "cell_membrane_to_cell_structure",
+      "source_space_id": "cell_membrane",
+      "target_space_id": "cell_structure",
+      "waypoints": [
+        {
+          "x": 13,
+          "y": 0,
+          "z": 35
+        },
+        {
+          "x": 23,
+          "y": 0,
+          "z": 35
+        },
+        {
+          "x": 23,
+          "y": 0,
+          "z": 31
+        }
+      ],
+      "width": 3,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail",
+      "direction": "forward"
+    },
+    {
+      "id": "photosynthesis_to_cell_structure",
+      "source_space_id": "photosynthesis",
+      "target_space_id": "cell_structure",
+      "waypoints": [
+        {
+          "x": 35,
+          "y": 0,
+          "z": 11
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "z": 11
+        },
+        {
+          "x": 31,
+          "y": 0,
+          "z": 15
+        }
+      ],
+      "width": 3,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail",
+      "direction": "forward"
+    },
+    {
+      "id": "mutations_to_dna",
+      "source_space_id": "mutations",
+      "target_space_id": "dna",
+      "waypoints": [
+        {
+          "x": 89,
           "y": 0,
           "z": 40
         },
         {
-          "x": 30,
+          "x": 98,
           "y": 0,
-          "z": 60
+          "z": 40
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "z": 31
         }
       ],
-      "width": 4,
+      "width": 3,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail",
+      "direction": "forward"
+    },
+    {
+      "id": "enzymes_to_proteins",
+      "source_space_id": "enzymes",
+      "target_space_id": "proteins",
+      "waypoints": [
+        {
+          "x": 11,
+          "y": 0,
+          "z": 91
+        },
+        {
+          "x": 21,
+          "y": 0,
+          "z": 91
+        },
+        {
+          "x": 21,
+          "y": 0,
+          "z": 95
+        }
+      ],
+      "width": 3,
+      "floor_block": "stone_path",
+      "wall_block": null,
+      "style": "trail",
+      "direction": "forward"
+    },
+    {
+      "id": "natural_selection_to_evolution",
+      "source_space_id": "natural_selection",
+      "target_space_id": "evolution",
+      "waypoints": [
+        {
+          "x": 91,
+          "y": 0,
+          "z": 86
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "z": 86
+        },
+        {
+          "x": 98,
+          "y": 0,
+          "z": 95
+        }
+      ],
+      "width": 3,
       "floor_block": "stone_path",
       "wall_block": null,
       "style": "trail",
@@ -621,161 +869,31 @@
       "target_space_id": "proteins",
       "waypoints": [
         {
-          "x": 8,
+          "x": 90,
           "y": 0,
-          "z": 0
+          "z": 31
         },
         {
-          "x": 6,
+          "x": 90,
           "y": 0,
-          "z": -30
+          "z": 60
         },
         {
-          "x": 6,
+          "x": 27,
           "y": 0,
-          "z": -60
+          "z": 60
+        },
+        {
+          "x": 27,
+          "y": 0,
+          "z": 95
         }
       ],
-      "width": 4,
-      "floor_block": "stone_path",
-      "wall_block": null,
-      "style": "trail",
-      "direction": "forward"
-    },
-    {
-      "id": "dna_to_cell_structure",
-      "source_space_id": "dna",
-      "target_space_id": "cell_structure",
-      "waypoints": [
-        {
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        {
-          "x": -20,
-          "y": 0,
-          "z": -15
-        },
-        {
-          "x": -40,
-          "y": 0,
-          "z": -30
-        }
-      ],
-      "width": 4,
+      "width": 2,
       "floor_block": "stone_path",
       "wall_block": null,
       "style": "trail",
       "direction": "lateral"
-    },
-    {
-      "id": "cell_structure_to_mitochondria",
-      "source_space_id": "cell_structure",
-      "target_space_id": "mitochondria",
-      "waypoints": [
-        {
-          "x": -24,
-          "y": 0,
-          "z": -30
-        },
-        {
-          "x": 0,
-          "y": 0,
-          "z": -35
-        },
-        {
-          "x": 40,
-          "y": 0,
-          "z": -30
-        }
-      ],
-      "width": 4,
-      "floor_block": "stone_path",
-      "wall_block": null,
-      "style": "trail",
-      "direction": "forward"
-    },
-    {
-      "id": "cell_structure_to_cell_membrane",
-      "source_space_id": "cell_structure",
-      "target_space_id": "cell_membrane",
-      "waypoints": [
-        {
-          "x": -40,
-          "y": 0,
-          "z": -14
-        },
-        {
-          "x": -42,
-          "y": 0,
-          "z": 10
-        },
-        {
-          "x": -40,
-          "y": 0,
-          "z": 30
-        }
-      ],
-      "width": 4,
-      "floor_block": "stone_path",
-      "wall_block": null,
-      "style": "trail",
-      "direction": "forward"
-    },
-    {
-      "id": "proteins_to_enzymes",
-      "source_space_id": "proteins",
-      "target_space_id": "enzymes",
-      "waypoints": [
-        {
-          "x": 0,
-          "y": 0,
-          "z": -48
-        },
-        {
-          "x": -15,
-          "y": 0,
-          "z": 0
-        },
-        {
-          "x": -30,
-          "y": 0,
-          "z": 60
-        }
-      ],
-      "width": 4,
-      "floor_block": "stone_path",
-      "wall_block": null,
-      "style": "trail",
-      "direction": "forward"
-    },
-    {
-      "id": "evolution_to_natural_selection",
-      "source_space_id": "evolution",
-      "target_space_id": "natural_selection",
-      "waypoints": [
-        {
-          "x": 68,
-          "y": 0,
-          "z": 36
-        },
-        {
-          "x": 66,
-          "y": 0,
-          "z": 48
-        },
-        {
-          "x": 66,
-          "y": 0,
-          "z": 60
-        }
-      ],
-      "width": 4,
-      "floor_block": "stone_path",
-      "wall_block": null,
-      "style": "trail",
-      "direction": "forward"
     },
     {
       "id": "evolution_to_mutations",
@@ -783,127 +901,19 @@
       "target_space_id": "mutations",
       "waypoints": [
         {
-          "x": 60,
+          "x": 90,
           "y": 0,
-          "z": 36
+          "z": 95
         },
         {
-          "x": 45,
+          "x": 90,
           "y": 0,
-          "z": 50
+          "z": 40
         },
         {
-          "x": 34,
+          "x": 89,
           "y": 0,
-          "z": 60
-        }
-      ],
-      "width": 2,
-      "floor_block": "stone_path",
-      "wall_block": null,
-      "style": "trail",
-      "direction": "lateral"
-    },
-    {
-      "id": "mutations_to_natural_selection",
-      "source_space_id": "mutations",
-      "target_space_id": "natural_selection",
-      "waypoints": [
-        {
-          "x": 38,
-          "y": 0,
-          "z": 64
-        },
-        {
-          "x": 50,
-          "y": 0,
-          "z": 64
-        },
-        {
-          "x": 60,
-          "y": 0,
-          "z": 64
-        }
-      ],
-      "width": 2,
-      "floor_block": "stone_path",
-      "wall_block": null,
-      "style": "trail",
-      "direction": "lateral"
-    },
-    {
-      "id": "photosynthesis_to_enzymes",
-      "source_space_id": "photosynthesis",
-      "target_space_id": "enzymes",
-      "waypoints": [
-        {
-          "x": -54,
-          "y": 0,
-          "z": 32
-        },
-        {
-          "x": -42,
-          "y": 0,
-          "z": 46
-        },
-        {
-          "x": -30,
-          "y": 0,
-          "z": 60
-        }
-      ],
-      "width": 2,
-      "floor_block": "stone_path",
-      "wall_block": null,
-      "style": "trail",
-      "direction": "lateral"
-    },
-    {
-      "id": "mitochondria_to_photosynthesis",
-      "source_space_id": "mitochondria",
-      "target_space_id": "photosynthesis",
-      "waypoints": [
-        {
-          "x": 40,
-          "y": 0,
-          "z": -18
-        },
-        {
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        {
-          "x": -60,
-          "y": 0,
-          "z": 20
-        }
-      ],
-      "width": 2,
-      "floor_block": "stone_path",
-      "wall_block": null,
-      "style": "trail",
-      "direction": "lateral"
-    },
-    {
-      "id": "cell_membrane_to_proteins",
-      "source_space_id": "cell_membrane",
-      "target_space_id": "proteins",
-      "waypoints": [
-        {
-          "x": -34,
-          "y": 0,
-          "z": 30
-        },
-        {
-          "x": -18,
-          "y": 0,
-          "z": -15
-        },
-        {
-          "x": 0,
-          "y": 0,
-          "z": -60
+          "z": 40
         }
       ],
       "width": 2,
@@ -918,9 +928,9 @@
       "id": "dna_artifact",
       "concept_id": "dna",
       "position": {
-        "x": 8,
+        "x": 98,
         "y": 1,
-        "z": 8
+        "z": 23
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -935,9 +945,9 @@
       "id": "cell_structure_artifact",
       "concept_id": "cell_structure",
       "position": {
-        "x": -32,
+        "x": 23,
         "y": 1,
-        "z": -22
+        "z": 23
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -952,9 +962,9 @@
       "id": "mitochondria_artifact",
       "concept_id": "mitochondria",
       "position": {
-        "x": 46,
+        "x": 11,
         "y": 1,
-        "z": -24
+        "z": 11
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -969,9 +979,9 @@
       "id": "proteins_artifact",
       "concept_id": "proteins",
       "position": {
-        "x": 6,
+        "x": 21,
         "y": 1,
-        "z": -54
+        "z": 101
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -986,9 +996,9 @@
       "id": "evolution_artifact",
       "concept_id": "evolution",
       "position": {
-        "x": 68,
+        "x": 98,
         "y": 1,
-        "z": 28
+        "z": 103
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -1003,9 +1013,9 @@
       "id": "photosynthesis_artifact",
       "concept_id": "photosynthesis",
       "position": {
-        "x": -54,
+        "x": 41,
         "y": 1,
-        "z": 26
+        "z": 11
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -1020,9 +1030,9 @@
       "id": "mutations_artifact",
       "concept_id": "mutations",
       "position": {
-        "x": 34,
+        "x": 89,
         "y": 1,
-        "z": 64
+        "z": 44
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -1037,9 +1047,9 @@
       "id": "enzymes_artifact",
       "concept_id": "enzymes",
       "position": {
-        "x": -24,
+        "x": 11,
         "y": 1,
-        "z": 66
+        "z": 91
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -1054,9 +1064,9 @@
       "id": "cell_membrane_artifact",
       "concept_id": "cell_membrane",
       "position": {
-        "x": -34,
+        "x": 9,
         "y": 1,
-        "z": 36
+        "z": 39
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -1071,9 +1081,9 @@
       "id": "natural_selection_artifact",
       "concept_id": "natural_selection",
       "position": {
-        "x": 66,
+        "x": 91,
         "y": 1,
-        "z": 66
+        "z": 86
       },
       "glb_url": "/placeholder.glb",
       "scale": 1.0,
@@ -1091,9 +1101,9 @@
       "concept_id": "dna",
       "name": "DNA",
       "position": {
-        "x": 4,
+        "x": 96,
         "y": 0,
-        "z": 12
+        "z": 25
       },
       "facing": 3.14,
       "voxel_model": {
@@ -1119,9 +1129,9 @@
       "concept_id": "cell_structure",
       "name": "Cell Structure",
       "position": {
-        "x": -36,
+        "x": 21,
         "y": 0,
-        "z": -18
+        "z": 25
       },
       "facing": 0.78,
       "voxel_model": {
@@ -1147,9 +1157,9 @@
       "concept_id": "mitochondria",
       "name": "Mitochondria",
       "position": {
-        "x": 44,
+        "x": 9,
         "y": 0,
-        "z": -20
+        "z": 13
       },
       "facing": 2.36,
       "voxel_model": {
@@ -1174,9 +1184,9 @@
       "concept_id": "proteins",
       "name": "Proteins",
       "position": {
-        "x": 4,
+        "x": 19,
         "y": 0,
-        "z": -50
+        "z": 103
       },
       "facing": 3.14,
       "voxel_model": {
@@ -1202,9 +1212,9 @@
       "concept_id": "evolution",
       "name": "Evolution",
       "position": {
-        "x": 64,
+        "x": 96,
         "y": 0,
-        "z": 32
+        "z": 105
       },
       "facing": 3.93,
       "voxel_model": {
@@ -1229,9 +1239,9 @@
       "concept_id": "photosynthesis",
       "name": "Photosynthesis",
       "position": {
-        "x": -56,
+        "x": 39,
         "y": 0,
-        "z": 28
+        "z": 13
       },
       "facing": 0.39,
       "voxel_model": {
@@ -1256,9 +1266,9 @@
       "concept_id": "mutations",
       "name": "Mutations",
       "position": {
-        "x": 32,
+        "x": 87,
         "y": 0,
-        "z": 62
+        "z": 46
       },
       "facing": 5.5,
       "voxel_model": {
@@ -1284,9 +1294,9 @@
       "concept_id": "enzymes",
       "name": "Enzymes",
       "position": {
-        "x": -26,
+        "x": 9,
         "y": 0,
-        "z": 64
+        "z": 93
       },
       "facing": 0.0,
       "voxel_model": {
@@ -1311,9 +1321,9 @@
       "concept_id": "cell_membrane",
       "name": "Cell Membrane",
       "position": {
-        "x": -36,
+        "x": 7,
         "y": 0,
-        "z": 34
+        "z": 41
       },
       "facing": 0.78,
       "voxel_model": {
@@ -1338,9 +1348,9 @@
       "concept_id": "natural_selection",
       "name": "Natural Selection",
       "position": {
-        "x": 64,
+        "x": 89,
         "y": 0,
-        "z": 64
+        "z": 88
       },
       "facing": 3.93,
       "voxel_model": {
@@ -1362,9 +1372,9 @@
     }
   ],
   "spawn_point": {
-    "x": -32,
-    "y": 1,
-    "z": -22
+    "x": 50,
+    "y": 2,
+    "z": 50
   },
   "learning_path": [
     "cell_structure",
