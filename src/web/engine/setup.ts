@@ -1,68 +1,79 @@
-import { Engine } from "noa-engine";
-import type { ThemeConfig, BlockType } from "../../shared/types";
+import {
+  Engine,
+  Scene,
+  FreeCamera,
+  Vector3,
+  HemisphericLight,
+  Color3,
+  Color4,
+} from "@babylonjs/core";
 
-let blockIdCounter = 1;
-
-/**
- * Creates and configures a noa-engine instance bound to the given container element.
- */
-export function createEngine(container: HTMLElement): Engine {
-  const noa = new Engine({
-    domElement: container,
-    showFPS: false,
-    inverseY: false,
-    chunkSize: 32,
-    chunkAddDistance: [3, 2],
-    chunkRemoveDistance: [4, 3],
-    gravity: [0, -10, 0],
-    playerHeight: 1.8,
-    playerWidth: 0.6,
-    playerStart: [0, 2, 0],
-    blockTestDistance: 8,
-    playerAutoStep: true,
-  });
-  return noa;
+export interface GameEngine {
+  engine: Engine;
+  scene: Scene;
+  camera: FreeCamera;
+  canvas: HTMLCanvasElement;
 }
 
 /**
- * Registers all block types from a theme palette with noa-engine.
- * Each BlockType is registered as a material (solid color) and then as a block.
- * Returns a Map from block string ID to noa numeric block ID for use in world gen.
+ * Creates and configures a pure Babylon.js engine bound to the given container element.
+ * Sets up an FPS-style camera with WASD movement, gravity, and collisions.
  */
-export function registerBlocks(
-  noa: Engine,
-  theme: ThemeConfig
-): Map<string, number> {
-  const blockMap = new Map<string, number>();
+export function createEngine(container: HTMLElement): GameEngine {
+  const canvas =
+    (container.querySelector("canvas") as HTMLCanvasElement) ||
+    document.createElement("canvas");
+  if (!canvas.parentElement) container.appendChild(canvas);
 
-  const allBlocks: BlockType[] = [
-    ...theme.palette.ground,
-    ...theme.palette.walls,
-    ...theme.palette.paths,
-    ...theme.palette.accent,
-    ...theme.palette.pedestal,
-  ];
+  const engine = new Engine(canvas, true, {
+    stencil: true,
+    preserveDrawingBuffer: true,
+  });
+  const scene = new Scene(engine);
 
-  for (const block of allBlocks) {
-    // Skip if already registered (same id can appear in multiple palette categories)
-    if (blockMap.has(block.id)) continue;
+  // Default clear color (will be overridden by theme)
+  scene.clearColor = new Color4(0.05, 0.05, 0.08, 1.0);
 
-    const [r, g, b] = block.color;
-    // Register the material with normalized RGB values
-    noa.registry.registerMaterial(block.id, {
-      color: [r / 255, g / 255, b / 255],
-    });
+  // ── FPS Camera with WASD + mouse ──
+  const camera = new FreeCamera("camera", new Vector3(0, 3, 0), scene);
+  camera.attachControl(canvas, true);
+  camera.speed = 0.5;
+  camera.angularSensibility = 3000;
+  camera.minZ = 0.1;
+  camera.inertia = 0.85;
 
-    // Assign a numeric block ID and register the block
-    const numericId = blockIdCounter++;
-    noa.registry.registerBlock(numericId, {
-      material: block.id,
-      solid: true,
-      opaque: true,
-    });
+  // WASD keys
+  camera.keysUp = [87]; // W
+  camera.keysDown = [83]; // S
+  camera.keysLeft = [65]; // A
+  camera.keysRight = [68]; // D
 
-    blockMap.set(block.id, numericId);
-  }
+  // Gravity + collision
+  scene.gravity = new Vector3(0, -0.5, 0);
+  camera.applyGravity = true;
+  camera.checkCollisions = true;
+  camera.ellipsoid = new Vector3(0.3, 0.9, 0.3);
+  scene.collisionsEnabled = true;
 
-  return blockMap;
+  // Default ambient light (overridden by theme applicator)
+  const defaultLight = new HemisphericLight(
+    "defaultLight",
+    new Vector3(0, 1, 0),
+    scene
+  );
+  defaultLight.intensity = 0.4;
+  defaultLight.diffuse = new Color3(1, 1, 1);
+
+  // Render loop
+  engine.runRenderLoop(() => scene.render());
+  window.addEventListener("resize", () => engine.resize());
+
+  // Pointer lock
+  canvas.addEventListener("click", () => {
+    if (!document.pointerLockElement) {
+      canvas.requestPointerLock();
+    }
+  });
+
+  return { engine, scene, camera, canvas };
 }

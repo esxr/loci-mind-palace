@@ -1,109 +1,105 @@
-import { Engine } from "noa-engine";
 import {
   MeshBuilder,
   Color3,
   StandardMaterial,
   Mesh,
-  TransformNode,
   Scene,
   Vector3,
 } from "@babylonjs/core";
 import type { NPCVoxelModel, WorldPosition } from "../../shared/types";
 
 /**
- * Builds a voxel-style NPC mesh (3 blocks tall: legs, body, head) and
- * registers it as a noa entity at the given world position.
+ * Builds a smooth NPC mesh (cylinder body + sphere head) and places it
+ * in the scene at the given world position.
  *
- * Returns the noa entity ID and the parent Babylon.js mesh.
+ * Returns the parent mesh for proximity detection and cleanup.
  */
 export function buildNPCMesh(
-  noa: Engine,
+  scene: Scene,
   model: NPCVoxelModel,
   position: WorldPosition,
   facing: number = 0
-): { entityId: number; mesh: Mesh } {
-  const scene: Scene = noa.rendering.getScene();
-
-  // ── Materials ──────────────────────────────────────────────────────────
+): { mesh: Mesh } {
+  // ── Materials ──
   const bodyMat = new StandardMaterial("npcBodyMat_" + Date.now(), scene);
   bodyMat.diffuseColor = Color3.FromHexString(model.palette.body);
-  bodyMat.specularColor = Color3.Black();
+  bodyMat.specularColor = new Color3(0.05, 0.05, 0.05);
 
   const headMat = new StandardMaterial("npcHeadMat_" + Date.now(), scene);
   headMat.diffuseColor = Color3.FromHexString(model.palette.head);
-  headMat.specularColor = Color3.Black();
+  headMat.specularColor = new Color3(0.05, 0.05, 0.05);
 
   const accentMat = new StandardMaterial("npcAccentMat_" + Date.now(), scene);
   accentMat.diffuseColor = Color3.FromHexString(model.palette.accent);
-  accentMat.specularColor = Color3.Black();
+  accentMat.emissiveColor = Color3.FromHexString(model.palette.accent).scale(
+    0.3
+  );
+  accentMat.specularColor = new Color3(0.05, 0.05, 0.05);
 
-  // ── Parent mesh ────────────────────────────────────────────────────────
+  // ── Parent mesh ──
   const parent = new Mesh("npcParent_" + Date.now(), scene);
 
-  // ── Legs (bottom block, y = 0 to 1) ────────────────────────────────────
-  const legs = MeshBuilder.CreateBox(
-    "npcLegs",
-    { width: 0.6, height: 1, depth: 0.6 },
-    scene
-  );
-  legs.material = bodyMat;
-  legs.position.y = 0.5;
-  legs.parent = parent;
-
-  // ── Body (middle block, y = 1 to 2) ────────────────────────────────────
-  const body = MeshBuilder.CreateBox(
+  // ── Body (cylinder, y = 0.6 center, height = 1.2) ──
+  const body = MeshBuilder.CreateCylinder(
     "npcBody",
-    { width: 0.9, height: 1, depth: 0.6 },
+    { height: 1.2, diameter: 0.6, tessellation: 16 },
     scene
   );
   body.material = bodyMat;
-  body.position.y = 1.5;
+  body.position.y = 0.6;
   body.parent = parent;
 
-  // ── Accent detail on body (belt/badge stripe) ──────────────────────────
-  const accent = MeshBuilder.CreateBox(
+  // ── Accent ring (thin torus/cylinder around the waist) ──
+  const accent = MeshBuilder.CreateTorus(
     "npcAccent",
-    { width: 0.92, height: 0.15, depth: 0.62 },
+    { diameter: 0.62, thickness: 0.08, tessellation: 16 },
     scene
   );
   accent.material = accentMat;
-  accent.position.y = 1.25;
+  accent.position.y = 0.7;
   accent.parent = parent;
 
-  // ── Head (top block, y = 2 to 2.8, slightly smaller) ──────────────────
-  const head = MeshBuilder.CreateBox(
+  // ── Head (sphere, sitting on top of body) ──
+  const head = MeshBuilder.CreateSphere(
     "npcHead",
-    { width: 0.8, height: 0.8, depth: 0.8 },
+    { diameter: 0.5, segments: 12 },
     scene
   );
   head.material = headMat;
-  head.position.y = 2.4;
+  head.position.y = 1.45;
   head.parent = parent;
 
-  // ── Apply facing rotation ──────────────────────────────────────────────
+  // ── Eyes (two small dark spheres) ──
+  const eyeMat = new StandardMaterial("npcEyeMat_" + Date.now(), scene);
+  eyeMat.diffuseColor = new Color3(0.1, 0.1, 0.15);
+  eyeMat.specularColor = new Color3(0.5, 0.5, 0.5);
+
+  for (const side of [-1, 1]) {
+    const eye = MeshBuilder.CreateSphere(
+      "npcEye",
+      { diameter: 0.08, segments: 8 },
+      scene
+    );
+    eye.material = eyeMat;
+    eye.position = new Vector3(side * 0.1, 1.5, -0.22);
+    eye.parent = parent;
+  }
+
+  // ── Position and facing ──
+  parent.position = new Vector3(
+    position.x + 0.5,
+    position.y,
+    position.z + 0.5
+  );
   parent.rotation.y = facing;
 
-  // ── Idle bob animation ─────────────────────────────────────────────────
-  const baseY = 0;
+  // ── Idle bob animation ──
+  const baseY = parent.position.y;
   scene.registerBeforeRender(() => {
     if (!parent.isDisposed()) {
-      parent.position.y = baseY + Math.sin(Date.now() / 500) * 0.05;
+      parent.position.y = baseY + Math.sin(Date.now() / 600) * 0.06;
     }
   });
 
-  // ── Create noa entity ──────────────────────────────────────────────────
-  const entityId = noa.entities.add(
-    [position.x + 0.5, position.y, position.z + 0.5], // center of block
-    1, // width
-    model.height_blocks, // height (typically 3)
-    parent, // mesh
-    [0, 0, 0], // mesh offset from entity position
-    false, // not a sprite
-    false // not collidable with player
-  );
-
-  // The mesh was already passed to noa.entities.add() above,
-  // so it's already attached — no need for addComponentAgain.
-
-  return { entityId, mesh: parent };
+  return { mesh: parent };
 }

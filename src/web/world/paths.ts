@@ -1,11 +1,15 @@
+import {
+  Scene,
+  MeshBuilder,
+  Vector3,
+  StandardMaterial,
+  Mesh,
+} from "@babylonjs/core";
 import type { Path, WorldPosition } from "../../shared/types";
 
-/** Function signature for placing a block: (blockId, x, y, z) */
-type BlockSetter = (id: number, x: number, y: number, z: number) => void;
-
 /**
- * Linearly interpolate between two world positions, yielding every integer
- * coordinate along the line (stepping by 1 block at a time).
+ * Linearly interpolate between two world positions, yielding positions
+ * at approximately 1-unit spacing along the line.
  */
 function interpolateWaypoints(
   a: WorldPosition,
@@ -21,9 +25,9 @@ function interpolateWaypoints(
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     points.push({
-      x: Math.round(a.x + dx * t),
-      y: Math.round(a.y + dy * t),
-      z: Math.round(a.z + dz * t),
+      x: a.x + dx * t,
+      y: a.y + dy * t,
+      z: a.z + dz * t,
     });
   }
   return points;
@@ -32,8 +36,6 @@ function interpolateWaypoints(
 /**
  * Compute a normalized 2D perpendicular direction (in the XZ plane) to the
  * segment from point a to point b. Used to give paths their width.
- * Returns [perpX, perpZ]. If the segment is vertical (no XZ movement),
- * defaults to [1, 0].
  */
 function perpendicularXZ(
   a: WorldPosition,
@@ -44,100 +46,103 @@ function perpendicularXZ(
   const len = Math.sqrt(dx * dx + dz * dz);
 
   if (len < 0.001) {
-    // Degenerate segment (vertical only) -- pick an arbitrary perpendicular
     return [1, 0];
   }
 
-  // Perpendicular in XZ: rotate direction 90 degrees
   return [-dz / len, dx / len];
 }
 
 /**
- * Build a path (corridor, trail, bridge, or tunnel) between two spaces.
+ * Build a path (corridor, trail, bridge, or tunnel) between two spaces
+ * using smooth mesh strips.
  *
- * Iterates through path.waypoints, interpolating between consecutive points.
- * For each interpolated position, places floor blocks in a strip of the
- * configured width, and optionally walls/ceiling depending on the path style.
+ * For each segment between consecutive waypoints, creates a floor ribbon
+ * and optionally wall meshes for corridor/tunnel styles.
  *
- * Styles:
- *  - corridor: floor + walls on both sides (1 thick, 3 high) + no ceiling
- *  - trail:    floor only, open air
- *  - bridge:   floor only, elevated (same as trail but implies height change)
- *  - tunnel:   floor + walls + ceiling (fully enclosed)
- *
- * @param setBlock Function to place a block: (blockId, x, y, z)
- * @param path     Path configuration from PalaceConfig
- * @param blockMap Map of block type IDs to noa numeric block IDs
+ * @param scene     Babylon.js scene
+ * @param path      Path configuration from PalaceConfig
+ * @param materials Map of block type IDs to StandardMaterial
  */
 export function buildPath(
-  setBlock: BlockSetter,
+  scene: Scene,
   path: Path,
-  blockMap: Map<string, number>
+  materials: Map<string, StandardMaterial>
 ): void {
   const { waypoints, width, style, floor_block, wall_block } = path;
 
-  const floorId = blockMap.get(floor_block);
-  if (floorId === undefined) return;
+  const floorMat = materials.get(floor_block);
+  if (!floorMat) return;
 
-  const wallId = wall_block ? blockMap.get(wall_block) : undefined;
+  const wallMat = wall_block ? materials.get(wall_block) : undefined;
 
   const needsWalls = style === "corridor" || style === "tunnel";
   const needsCeiling = style === "tunnel";
   const wallHeight = 3;
-  const halfWidth = (width - 1) / 2;
-
-  // Track placed positions to avoid redundant setBlock calls
-  const placed = new Set<string>();
-  const key = (x: number, y: number, z: number) => `${x},${y},${z}`;
 
   for (let i = 0; i < waypoints.length - 1; i++) {
     const wpA = waypoints[i];
     const wpB = waypoints[i + 1];
-    const points = interpolateWaypoints(wpA, wpB);
     const [perpX, perpZ] = perpendicularXZ(wpA, wpB);
 
-    for (const pt of points) {
-      // Place floor strip of given width perpendicular to the path direction
-      for (let w = -Math.floor(halfWidth); w <= Math.ceil(halfWidth); w++) {
-        const fx = Math.round(pt.x + perpX * w);
-        const fz = Math.round(pt.z + perpZ * w);
-        const floorKey = key(fx, pt.y, fz);
+    // Compute segment direction and length
+    const segDx = wpB.x - wpA.x;
+    const segDy = wpB.y - wpA.y;
+    const segDz = wpB.z - wpA.z;
+    const segLen = Math.sqrt(segDx * segDx + segDy * segDy + segDz * segDz);
 
-        if (!placed.has(floorKey)) {
-          setBlock(floorId, fx, pt.y, fz);
-          placed.add(floorKey);
-        }
+    if (segLen < 0.1) continue;
+
+    // Mid-point and angle
+    const midX = (wpA.x + wpB.x) / 2;
+    const midY = (wpA.y + wpB.y) / 2;
+    const midZ = (wpA.z + wpB.z) / 2;
+    const angle = Math.atan2(segDx, segDz);
+
+    // ── Floor strip ──
+    const floor = MeshBuilder.CreateBox(
+      `pathFloor_${path.id}_${i}`,
+      { width: width, height: 0.25, depth: segLen + 0.5 },
+      scene
+    );
+    floor.position = new Vector3(midX, midY + 0.01, midZ);
+    floor.rotation.y = angle;
+    floor.material = floorMat;
+    floor.checkCollisions = true;
+
+    // ── Walls (corridor / tunnel) ──
+    if (needsWalls && wallMat) {
+      const halfWidth = width / 2 + 0.15;
+
+      for (const side of [-1, 1]) {
+        const wallOffsetX = perpX * halfWidth * side;
+        const wallOffsetZ = perpZ * halfWidth * side;
+
+        const wall = MeshBuilder.CreateBox(
+          `pathWall_${path.id}_${i}_${side > 0 ? "R" : "L"}`,
+          { width: 0.3, height: wallHeight, depth: segLen + 0.5 },
+          scene
+        );
+        wall.position = new Vector3(
+          midX + wallOffsetX,
+          midY + wallHeight / 2,
+          midZ + wallOffsetZ
+        );
+        wall.rotation.y = angle;
+        wall.material = wallMat;
+        wall.checkCollisions = true;
       }
+    }
 
-      // Place walls on both sides of the path strip
-      if (needsWalls && wallId !== undefined) {
-        for (const side of [-1, 1]) {
-          const wallOffset = side * (Math.ceil(halfWidth) + 1);
-          const wx = Math.round(pt.x + perpX * wallOffset);
-          const wz = Math.round(pt.z + perpZ * wallOffset);
-
-          for (let h = 1; h <= wallHeight; h++) {
-            const wKey = key(wx, pt.y + h, wz);
-            if (!placed.has(wKey)) {
-              setBlock(wallId, wx, pt.y + h, wz);
-              placed.add(wKey);
-            }
-          }
-        }
-      }
-
-      // Place ceiling for tunnel style
-      if (needsCeiling && wallId !== undefined) {
-        for (let w = -Math.floor(halfWidth) - 1; w <= Math.ceil(halfWidth) + 1; w++) {
-          const cx = Math.round(pt.x + perpX * w);
-          const cz = Math.round(pt.z + perpZ * w);
-          const cKey = key(cx, pt.y + wallHeight + 1, cz);
-          if (!placed.has(cKey)) {
-            setBlock(wallId, cx, pt.y + wallHeight + 1, cz);
-            placed.add(cKey);
-          }
-        }
-      }
+    // ── Ceiling (tunnel) ──
+    if (needsCeiling && wallMat) {
+      const ceiling = MeshBuilder.CreateBox(
+        `pathCeil_${path.id}_${i}`,
+        { width: width + 0.6, height: 0.3, depth: segLen + 0.5 },
+        scene
+      );
+      ceiling.position = new Vector3(midX, midY + wallHeight + 0.15, midZ);
+      ceiling.rotation.y = angle;
+      ceiling.material = wallMat;
     }
   }
 }

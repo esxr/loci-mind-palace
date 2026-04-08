@@ -38,6 +38,29 @@ export type SkyboxType = "gradient" | "color";
 
 export type PalaceStatus = "generating" | "ready" | "error";
 
+// ─── Room Archetypes & Moods (Feature 6: Memory Anchors) ───
+
+export type RoomArchetype =
+  | "laboratory"
+  | "library"
+  | "garden"
+  | "amphitheater"
+  | "observatory"
+  | "workshop"
+  | "gallery"
+  | "chamber";
+
+export type AmbientMood =
+  | "serene"
+  | "energetic"
+  | "mysterious"
+  | "clinical"
+  | "warm";
+
+// ─── Path Direction (Feature 3: Prerequisite Chains) ───
+
+export type PathDirection = "forward" | "lateral" | "none";
+
 // ─── Spatial Layout ───
 
 export interface WorldPosition {
@@ -90,10 +113,14 @@ export interface Space {
   };
   shape: SpaceShape;
   zone_id: number;                  // Louvain cluster ID
+  zone_name: string;                // Human-readable cluster name (e.g., "Cell Biology")
+  zone_color: string;               // Hex color accent for this zone
   floor_block: string;              // Block type ID from theme palette
   wall_block: string;               // Block type ID from theme palette
   ceiling_block: string | null;     // null = open sky/space
   has_ceiling: boolean;
+  archetype: RoomArchetype;         // Room type for distinct spatial identity
+  ambient_mood: AmbientMood;        // Feeling/atmosphere of the space
 }
 
 // ─── Paths ───
@@ -107,6 +134,7 @@ export interface Path {
   floor_block: string;              // Block type ID from theme palette
   wall_block: string | null;        // null = open path (no corridor walls)
   style: PathStyle;
+  direction: PathDirection;         // forward = prerequisite flow, lateral = relates_to
 }
 
 // ─── Artifacts ───
@@ -224,6 +252,14 @@ export interface PedestalStyleConfig {
   default_height: number;
 }
 
+// ─── Zone Styling (Feature 1: Semantic Clustering) ───
+
+export interface ZoneStyle {
+  name: string;
+  accent_color: string;             // Hex — used for wall tint, archway color
+  wall_tint: [number, number, number];  // RGB modifier applied to base wall color
+}
+
 // ─── Top-Level Config ───
 
 export interface PalaceConfig {
@@ -238,6 +274,7 @@ export interface PalaceConfig {
   artifacts: Artifact[];            // 3D objects representing concepts
   npcs: NPC[];                      // NPC guides per concept
   spawn_point: WorldPosition;       // Where the player starts
+  learning_path: string[];          // Ordered concept IDs forming the recommended walkthrough
 }
 
 export interface PalaceMetadata {

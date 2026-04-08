@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['noa-engine'],
+    include: ['@babylonjs/core', '@babylonjs/loaders'],
   },
   server: {
     port: 5173,

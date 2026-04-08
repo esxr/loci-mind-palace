@@ -8,11 +8,23 @@ const ENRICHMENT_SYSTEM_PROMPT = `You are a spatial architect for a memory palac
 For each concept, add:
 - spatial_hint: one of "central" (should be near the center), "gateway" (connects major clusters), "peripheral" (edge of the map), "standard" (no special placement)
 - display_size: "large" | "medium" | "small" based on importance
+- archetype: the type of room that best represents this concept. Choose from:
+  "laboratory" (experimental/process concepts), "library" (theoretical/knowledge concepts),
+  "garden" (natural/organic concepts), "amphitheater" (central/important concepts),
+  "observatory" (observation/analysis concepts), "workshop" (practical/applied concepts),
+  "gallery" (collection/variety concepts), "chamber" (intimate/detailed concepts)
+- ambient_mood: the feeling of the space. Choose from:
+  "serene" (calm, contemplative), "energetic" (active, dynamic),
+  "mysterious" (discovery, unknown), "clinical" (precise, scientific), "warm" (inviting, comfortable)
 
 For each relationship, add:
 - corridor_style: "wide" (strong connection) | "narrow" (weak connection) | "bridge" (cross-cluster)
 
 Also identify 1-3 concepts that should serve as the entry points (where the user spawns).
+
+Also determine a recommended learning path — an ordered sequence of concept IDs
+that a student should visit, starting from the most foundational concept and
+progressing to the most advanced. This becomes the "golden path" through the palace.
 
 Return the enriched graph as JSON.`;
 
@@ -48,6 +60,23 @@ const ENRICH_TOOL = {
               type: "string" as const,
               enum: ["large", "medium", "small"],
             },
+            archetype: {
+              type: "string" as const,
+              enum: [
+                "laboratory",
+                "library",
+                "garden",
+                "amphitheater",
+                "observatory",
+                "workshop",
+                "gallery",
+                "chamber",
+              ],
+            },
+            ambient_mood: {
+              type: "string" as const,
+              enum: ["serene", "energetic", "mysterious", "clinical", "warm"],
+            },
           },
           required: [
             "id",
@@ -58,6 +87,8 @@ const ENRICH_TOOL = {
             "source_notes",
             "spatial_hint",
             "display_size",
+            "archetype",
+            "ambient_mood",
           ],
         },
       },
@@ -98,8 +129,14 @@ const ENRICH_TOOL = {
         items: { type: "string" as const },
         description: "1-3 concept IDs that should serve as entry/spawn points",
       },
+      learning_path: {
+        type: "array" as const,
+        items: { type: "string" as const },
+        description:
+          "Ordered sequence of concept IDs forming the recommended walkthrough, from most foundational to most advanced",
+      },
     },
-    required: ["concepts", "relationships", "entry_points"],
+    required: ["concepts", "relationships", "entry_points", "learning_path"],
   },
 };
 
@@ -185,6 +222,7 @@ async function callClaudeWithRetry(
 export interface EnrichmentResult {
   graph: ConceptGraph;
   entry_points: string[];
+  learning_path: string[];
 }
 
 /**
@@ -230,6 +268,7 @@ export async function enrichConceptGraph(
     concepts: ConceptGraph["concepts"];
     relationships: ConceptGraph["relationships"];
     entry_points: string[];
+    learning_path: string[];
   };
 
   // Validate structure
@@ -253,6 +292,10 @@ export async function enrichConceptGraph(
             ? "medium"
             : "small";
     }
+    // Fallback archetype and mood if Claude missed them
+    const c = concept as Record<string, unknown>;
+    if (!c.archetype) c.archetype = "chamber";
+    if (!c.ambient_mood) c.ambient_mood = "clinical";
   }
 
   // Ensure every relationship has corridor_style
@@ -276,11 +319,24 @@ export async function enrichConceptGraph(
     entryPoints = [sorted[0].id];
   }
 
+  // Ensure learning_path references valid concepts and covers all
+  let learningPath = (enriched.learning_path || []).filter((id) =>
+    conceptIds.has(id),
+  );
+  if (learningPath.length === 0) {
+    // Fallback: order by prerequisites first, then importance descending
+    const sorted = [...enriched.concepts].sort(
+      (a, b) => b.importance - a.importance,
+    );
+    learningPath = sorted.map((c) => c.id);
+  }
+
   return {
     graph: {
       concepts: enriched.concepts,
       relationships: enriched.relationships,
     },
     entry_points: entryPoints,
+    learning_path: learningPath,
   };
 }

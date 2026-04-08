@@ -1,6 +1,29 @@
 // ─── Deno Edge Function Types ───
 // Inline copy of shared types for Deno runtime (cannot import from npm workspace).
 
+// ─── Room Archetypes & Moods (Feature 6: Memory Anchors) ───
+
+export type RoomArchetype =
+  | "laboratory"
+  | "library"
+  | "garden"
+  | "amphitheater"
+  | "observatory"
+  | "workshop"
+  | "gallery"
+  | "chamber";
+
+export type AmbientMood =
+  | "serene"
+  | "energetic"
+  | "mysterious"
+  | "clinical"
+  | "warm";
+
+// ─── Path Direction (Feature 3: Prerequisite Chains) ───
+
+export type PathDirection = "forward" | "lateral" | "none";
+
 // ─── Concept Graph ───
 
 export interface ConceptGraph {
@@ -51,10 +74,14 @@ export interface Space {
   };
   shape: "rectangular" | "circular" | "organic";
   zone_id: number;
+  zone_name: string;                // Human-readable cluster name (e.g., "Cell Biology")
+  zone_color: string;               // Hex color accent for this zone
   floor_block: string;
   wall_block: string;
   ceiling_block: string | null;
   has_ceiling: boolean;
+  archetype: RoomArchetype;         // Room type for distinct spatial identity
+  ambient_mood: AmbientMood;        // Feeling/atmosphere of the space
 }
 
 export interface Path {
@@ -66,6 +93,7 @@ export interface Path {
   floor_block: string;
   wall_block: string | null;
   style: "corridor" | "trail" | "bridge" | "tunnel";
+  direction: PathDirection;         // forward = prerequisite flow, lateral = relates_to
 }
 
 // ─── Artifacts ───
@@ -183,6 +211,14 @@ export interface PedestalStyleConfig {
   default_height: number;
 }
 
+// ─── Zone Styling (Feature 1: Semantic Clustering) ───
+
+export interface ZoneStyle {
+  name: string;
+  accent_color: string;             // Hex — used for wall tint, archway color
+  wall_tint: [number, number, number];  // RGB modifier applied to base wall color
+}
+
 // ─── Top-Level Config ───
 
 export interface PalaceConfig {
@@ -197,6 +233,7 @@ export interface PalaceConfig {
   artifacts: Artifact[];
   npcs: NPC[];
   spawn_point: WorldPosition;
+  learning_path: string[];          // Ordered concept IDs forming the recommended walkthrough
 }
 
 export interface PalaceMetadata {

@@ -11,6 +11,9 @@ import type {
   WorldPosition,
   ThemeConfig,
   Pedestal,
+  PathDirection,
+  RoomArchetype,
+  AmbientMood,
 } from "../_shared/types.ts";
 
 // ---------------------------------------------------------------------------
@@ -162,6 +165,59 @@ const THEMES: Record<string, ThemeConfig> = {
 };
 
 // ---------------------------------------------------------------------------
+// Zone color palette (Feature 1: Semantic Clustering)
+// ---------------------------------------------------------------------------
+
+const ZONE_PALETTE = [
+  "#4CAF50",
+  "#2196F3",
+  "#FF9800",
+  "#9C27B0",
+  "#F44336",
+  "#00BCD4",
+];
+
+/** Convert a hex color to an RGB tuple. */
+function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+/** Compute a human-readable zone name from the majority cluster_label in a zone. */
+function computeZoneName(concepts: Concept[]): string {
+  const labelCounts = new Map<string, number>();
+  for (const c of concepts) {
+    labelCounts.set(c.cluster_label, (labelCounts.get(c.cluster_label) ?? 0) + 1);
+  }
+  let best = "";
+  let bestCount = 0;
+  for (const [label, count] of labelCounts) {
+    if (count > bestCount) {
+      bestCount = count;
+      best = label;
+    }
+  }
+  // Title-case the label (e.g. "cell_biology" → "Cell Biology")
+  return best
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+/** Determine path direction based on relationship type. */
+function directionForRelType(
+  relType: string,
+): PathDirection {
+  if (relType === "prerequisite" || relType === "contains") {
+    return "forward";
+  }
+  if (relType === "relates_to" || relType === "example_of" || relType === "contrasts_with") {
+    return "lateral";
+  }
+  return "none";
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -172,6 +228,7 @@ export interface LayoutResult {
   artifacts: Artifact[];
   npcs: NPC[];
   spawn_point: WorldPosition;
+  learning_path: string[];
 }
 
 interface SpacePosition {
@@ -462,6 +519,7 @@ export function computeLayout(
   themeId: string,
   entryPoints: string[],
   seed?: number,
+  learningPath?: string[],
 ): LayoutResult {
   const theme = THEMES[themeId];
   if (!theme) {
@@ -511,6 +569,33 @@ export function computeLayout(
     for (const concept of graph.concepts) {
       communities[concept.id] = 0;
     }
+  }
+
+  // ---- Step 2b: Compute zone names and colors from clusters ----
+  const zoneConceptsMap = new Map<number, Concept[]>();
+  for (const concept of graph.concepts) {
+    const zoneId = communities[concept.id] ?? 0;
+    if (!zoneConceptsMap.has(zoneId)) {
+      zoneConceptsMap.set(zoneId, []);
+    }
+    zoneConceptsMap.get(zoneId)!.push(concept);
+  }
+
+  const zoneNames = new Map<number, string>();
+  const zoneColors = new Map<number, string>();
+  const sortedZoneIds = [...zoneConceptsMap.keys()].sort();
+  for (let i = 0; i < sortedZoneIds.length; i++) {
+    const zoneId = sortedZoneIds[i];
+    const concepts = zoneConceptsMap.get(zoneId)!;
+    zoneNames.set(zoneId, computeZoneName(concepts));
+    zoneColors.set(zoneId, ZONE_PALETTE[i % ZONE_PALETTE.length]);
+  }
+
+  // Build a relationship type lookup for path direction assignment
+  const relTypeMap = new Map<string, string>();
+  for (const rel of graph.relationships) {
+    const key = `${rel.source_id}__${rel.target_id}`;
+    relTypeMap.set(key, rel.type);
   }
 
   // ---- Step 3: ForceAtlas2 layout ----
@@ -598,6 +683,11 @@ export function computeLayout(
     const { width, depth } = sizeForDisplay(sp.concept.display_size);
     const floorY = zoneElevations.get(sp.zoneId) ?? 0;
 
+    // Read archetype/mood from concept if present (enrichment adds these)
+    const conceptAny = sp.concept as Record<string, unknown>;
+    const archetype = (conceptAny.archetype as RoomArchetype) ?? "chamber";
+    const ambientMood = (conceptAny.ambient_mood as AmbientMood) ?? "clinical";
+
     return {
       id: sp.conceptId,
       concept_id: sp.conceptId,
@@ -617,12 +707,16 @@ export function computeLayout(
           ? "organic"
           : "rectangular",
       zone_id: sp.zoneId,
+      zone_name: zoneNames.get(sp.zoneId) ?? "Unknown",
+      zone_color: zoneColors.get(sp.zoneId) ?? ZONE_PALETTE[0],
       floor_block: theme.palette.ground[0].id,
       wall_block: theme.palette.walls[0].id,
       ceiling_block: themeId === "space_station"
         ? theme.palette.walls[0].id
         : null,
       has_ceiling: themeId === "space_station",
+      archetype,
+      ambient_mood: ambientMood,
     };
   });
 
@@ -682,6 +776,7 @@ export function computeLayout(
         ? theme.palette.walls[0].id
         : null,
       style: pathStyle,
+      direction: directionForRelType(rel.type),
     });
   }
 
@@ -760,9 +855,22 @@ export function computeLayout(
     };
   });
 
-  // ---- Step 10: Compute spawn point ----
-  // Use the first entry point concept
-  const spawnConceptId = entryPoints[0] ?? graph.concepts[0]?.id;
+  // ---- Step 10: Compute learning path and spawn point ----
+
+  // If learning path was provided by enrichment, use it; otherwise compute one
+  let finalLearningPath: string[];
+  if (learningPath && learningPath.length > 0) {
+    finalLearningPath = learningPath.filter((id) => conceptMap.has(id));
+  } else {
+    // Fallback: order by prerequisites first, then by importance descending
+    const sorted = [...graph.concepts].sort(
+      (a, b) => b.importance - a.importance,
+    );
+    finalLearningPath = sorted.map((c) => c.id);
+  }
+
+  // Spawn point is at the FIRST concept in the learning path (most foundational)
+  const spawnConceptId = finalLearningPath[0] ?? entryPoints[0] ?? graph.concepts[0]?.id;
   const spawnSpace = spaceMap.get(spawnConceptId);
 
   let spawnPoint: WorldPosition;
@@ -784,6 +892,7 @@ export function computeLayout(
     artifacts,
     npcs,
     spawn_point: spawnPoint,
+    learning_path: finalLearningPath,
   };
 }
 

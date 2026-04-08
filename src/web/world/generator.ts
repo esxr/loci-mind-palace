@@ -1,13 +1,17 @@
-import { Engine } from "noa-engine";
 import type { PalaceConfig, Space } from "../../shared/types";
-import { BlockStore } from "./blockStore";
+import type { GameEngine } from "../engine/setup";
 import { buildSpace } from "./spaces";
 import { buildPath } from "./paths";
 import { buildPedestal, loadArtifact } from "../artifacts/loader";
+import {
+  MeshBuilder,
+  Vector3,
+  StandardMaterial,
+  Scene,
+} from "@babylonjs/core";
 
 /**
  * Compute axis-aligned bounding box encompassing all spaces.
- * Returns { minX, minZ, maxX, maxZ, minY } so the ground plane covers everything.
  */
 function computeBounds(spaces: Space[]): {
   minX: number;
@@ -40,85 +44,119 @@ function computeBounds(spaces: Space[]): {
 }
 
 /**
- * Build a thin (1-block-thick) ground plane beneath all spaces.
- * Uses the first ground block type from the theme palette.
- * Extends a small margin (4 blocks) around the bounding box of all spaces.
+ * Build a ground plane beneath all spaces as a large flat mesh.
  */
 function buildGroundPlane(
-  store: BlockStore,
+  scene: Scene,
   config: PalaceConfig,
-  blockMap: Map<string, number>
+  materials: Map<string, StandardMaterial>
 ): void {
   if (config.spaces.length === 0) return;
 
   const groundBlockId = config.theme.palette.ground[0]?.id;
   if (!groundBlockId) return;
 
-  const numericId = blockMap.get(groundBlockId);
-  if (numericId === undefined) return;
+  const groundMat = materials.get(groundBlockId);
+  if (!groundMat) return;
 
-  const margin = 4;
+  const margin = 20;
   const bounds = computeBounds(config.spaces);
-  const groundY = bounds.minY - 1; // one block below the lowest space floor
+  const groundY = bounds.minY - 0.15;
 
-  for (let x = bounds.minX - margin; x <= bounds.maxX + margin; x++) {
-    for (let z = bounds.minZ - margin; z <= bounds.maxZ + margin; z++) {
-      store.set(numericId, x, groundY, z);
+  const rangeX = bounds.maxX - bounds.minX + margin * 2;
+  const rangeZ = bounds.maxZ - bounds.minZ + margin * 2;
+  const groundWidth = Math.max(rangeX, 300);
+  const groundDepth = Math.max(rangeZ, 300);
+
+  const centerX = (bounds.minX + bounds.maxX) / 2;
+  const centerZ = (bounds.minZ + bounds.maxZ) / 2;
+
+  const ground = MeshBuilder.CreateGround(
+    "ground",
+    { width: groundWidth, height: groundDepth, subdivisions: 1 },
+    scene
+  );
+  ground.position = new Vector3(centerX, groundY, centerZ);
+  ground.material = groundMat;
+  ground.checkCollisions = true;
+}
+
+/**
+ * Collect all path waypoints that are near a given space so we know where
+ * to leave doorway openings in the walls.
+ */
+function collectPathOpenings(
+  config: PalaceConfig,
+  spaceId: string
+): Array<{ x: number; y: number; z: number }> {
+  const openings: Array<{ x: number; y: number; z: number }> = [];
+
+  for (const path of config.paths) {
+    if (path.source_space_id === spaceId || path.target_space_id === spaceId) {
+      // Use first and last waypoints as doorway markers
+      if (path.waypoints.length > 0) {
+        openings.push(path.waypoints[0]);
+        if (path.waypoints.length > 1) {
+          openings.push(path.waypoints[path.waypoints.length - 1]);
+        }
+      }
     }
   }
+
+  return openings;
+}
+
+/**
+ * Build a concept name lookup from the palace config's concept graph.
+ */
+function buildConceptNameMap(config: PalaceConfig): Map<string, string> {
+  const nameMap = new Map<string, string>();
+  for (const concept of config.concept_graph.concepts) {
+    nameMap.set(concept.id, concept.name);
+  }
+  return nameMap;
 }
 
 /**
  * Top-level world generation orchestrator.
- * Builds all voxel geometry from a PalaceConfig:
- *  1. Install worldDataNeeded handler (critical for noa chunk rendering)
- *  2. Ground plane
- *  3. Spaces (rooms with floors, walls, optional ceilings)
- *  4. Paths (corridors, trails, bridges, tunnels)
- *  5. Pedestals + artifact meshes
- *  6. Player spawn + camera orientation
+ * Builds all mesh geometry from a PalaceConfig:
+ *  1. Ground plane
+ *  2. Spaces (rooms with smooth floors, walls, optional ceilings, labels)
+ *  3. Paths (corridors, trails, bridges, tunnels)
+ *  4. Pedestals + artifact meshes
+ *  5. Camera spawn position + orientation
  */
 export async function generateWorld(
-  noa: Engine,
+  gameEngine: GameEngine,
   config: PalaceConfig,
-  blockMap: Map<string, number>
+  materials: Map<string, StandardMaterial>
 ): Promise<void> {
-  // Create a block store that buffers all voxel placements.
-  // noa-engine only creates chunks via the worldDataNeeded event; calling
-  // noa.setBlock() directly is a no-op when the chunk does not yet exist.
-  // The store collects placements and the handler feeds them to noa on demand.
-  const store = new BlockStore();
-  store.install(noa);
+  const { scene, camera } = gameEngine;
+  const conceptNames = buildConceptNameMap(config);
 
-  // Setter function bound to the store for sub-builders
-  const setBlock = (id: number, x: number, y: number, z: number) =>
-    store.set(id, x, y, z);
-
-  // 1. Build ground plane (thin base layer under all spaces)
-  buildGroundPlane(store, config, blockMap);
+  // 1. Build ground plane
+  buildGroundPlane(scene, config, materials);
 
   // 2. Build each space
   for (const space of config.spaces) {
-    buildSpace(setBlock, space, blockMap);
+    const pathOpenings = collectPathOpenings(config, space.id);
+    const conceptName = conceptNames.get(space.concept_id) || "";
+    buildSpace(scene, space, materials, conceptName, pathOpenings);
   }
 
   // 3. Build paths between spaces
   for (const path of config.paths) {
-    buildPath(setBlock, path, blockMap);
+    buildPath(scene, path, materials);
   }
 
   // 4. Build pedestals and load artifacts
   for (const artifact of config.artifacts) {
-    buildPedestal(setBlock, artifact, blockMap);
-    await loadArtifact(noa, artifact);
+    buildPedestal(scene, artifact, materials);
+    await loadArtifact(scene, artifact);
   }
 
-  // 5. Set spawn point above the ground level so the player doesn't clip
+  // 5. Set camera position at spawn point
   const sp = config.spawn_point;
-  const spawnY = sp.y + 2; // stand on floor (floor at sp.y, feet at sp.y+1 would clip)
-  noa.ents.setPosition(noa.playerEntity, [sp.x, spawnY, sp.z]);
-
-  // 6. Orient camera to look slightly downward so the world is visible on load
-  noa.camera.heading = 0;
-  noa.camera.pitch = -0.3;
+  camera.position = new Vector3(sp.x, sp.y + 2, sp.z);
+  camera.rotation.x = 0.1; // Slightly looking down
 }

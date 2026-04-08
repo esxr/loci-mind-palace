@@ -1,57 +1,53 @@
-import { Engine } from "noa-engine";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { MeshBuilder } from "@babylonjs/core/Meshes/meshBuilder";
 import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 import { Color3 } from "@babylonjs/core/Maths/math.color";
+import { Vector3 } from "@babylonjs/core/Maths/math.vector";
+import { Scene } from "@babylonjs/core/scene";
 import "@babylonjs/loaders/glTF";
 import type { Artifact } from "../../shared/types";
 
-/** Function signature for placing a block: (blockId, x, y, z) */
-type BlockSetter = (id: number, x: number, y: number, z: number) => void;
-
 /**
- * Build a voxel pedestal underneath an artifact's world position.
+ * Build a smooth pedestal mesh underneath an artifact's world position.
+ * The pedestal is a beveled box centered under the artifact.
  *
- * The pedestal is a solid block of pedestal.width x pedestal.height x pedestal.width
- * centered under the artifact position. It raises the artifact above the floor.
- *
- * @param setBlock Function to place a block: (blockId, x, y, z)
- * @param artifact Artifact configuration from PalaceConfig
- * @param blockMap Map of block type IDs to noa numeric block IDs
+ * @param scene     Babylon.js scene
+ * @param artifact  Artifact configuration from PalaceConfig
+ * @param materials Map of block type IDs to StandardMaterial
  */
 export function buildPedestal(
-  setBlock: BlockSetter,
+  scene: Scene,
   artifact: Artifact,
-  blockMap: Map<string, number>
+  materials: Map<string, StandardMaterial>
 ): void {
   const { pedestal, position } = artifact;
-  const pedestalId = blockMap.get(pedestal.block);
-  if (pedestalId === undefined) return;
+  const pedestalMat = materials.get(pedestal.block);
+  if (!pedestalMat) return;
 
-  const halfW = Math.floor(pedestal.width / 2);
+  const pedestalMesh = MeshBuilder.CreateBox(
+    `pedestal_${artifact.id}`,
+    {
+      width: pedestal.width,
+      height: pedestal.height,
+      depth: pedestal.width,
+    },
+    scene
+  );
 
-  for (let h = 0; h < pedestal.height; h++) {
-    for (let dx = -halfW; dx <= halfW; dx++) {
-      for (let dz = -halfW; dz <= halfW; dz++) {
-        setBlock(
-          pedestalId,
-          Math.round(position.x) + dx,
-          Math.round(position.y) + h,
-          Math.round(position.z) + dz
-        );
-      }
-    }
-  }
+  pedestalMesh.position = new Vector3(
+    position.x,
+    position.y + pedestal.height / 2,
+    position.z
+  );
+  pedestalMesh.material = pedestalMat;
+  pedestalMesh.checkCollisions = true;
 }
 
 /**
  * Create a simple colored cube mesh as a placeholder when GLB loading fails.
  * The cube is tinted with a deterministic color derived from the artifact ID.
  */
-function createPlaceholderArtifact(noa: Engine, artifact: Artifact): void {
-  const scene = noa.rendering.getScene();
-
-  // Deterministic hue from artifact ID hash
+function createPlaceholderArtifact(scene: Scene, artifact: Artifact): void {
   let hash = 0;
   for (let i = 0; i < artifact.id.length; i++) {
     hash = ((hash << 5) - hash + artifact.id.charCodeAt(i)) | 0;
@@ -69,51 +65,40 @@ function createPlaceholderArtifact(noa: Engine, artifact: Artifact): void {
   mat.specularColor = new Color3(0.2, 0.2, 0.2);
   box.material = mat;
 
-  box.position.set(
+  box.position = new Vector3(
     artifact.position.x,
     artifact.position.y + artifact.pedestal.height + 0.5,
     artifact.position.z
   );
   box.rotation.y = artifact.rotation_y;
 
-  // Attach to noa entity system for chunk management
-  const eid = noa.entities.add(
-    [artifact.position.x, artifact.position.y, artifact.position.z],
-    1, // width
-    1, // height
-    null,
-    null,
-    false,
-    false
-  );
-  noa.entities.addComponentAgain(eid, "mesh", { mesh: box });
+  // Slow spin animation for visual interest
+  scene.registerBeforeRender(() => {
+    if (!box.isDisposed()) {
+      box.rotation.y += 0.005;
+    }
+  });
 }
 
 /**
  * Load a GLB artifact mesh via Babylon.js SceneLoader and position it on its pedestal.
+ * On failure, a colored placeholder cube is created instead.
  *
- * The mesh is scaled by artifact.scale, rotated by artifact.rotation_y on the Y axis,
- * and positioned at the artifact's world position raised by the pedestal height.
- *
- * On failure (network error, invalid GLB, etc.) a colored placeholder cube is created
- * instead so the world remains functional.
- *
- * @param noa      The noa-engine instance
+ * @param scene    Babylon.js scene
  * @param artifact Artifact configuration from PalaceConfig
  */
 export async function loadArtifact(
-  noa: Engine,
+  scene: Scene,
   artifact: Artifact
 ): Promise<void> {
-  const scene = noa.rendering.getScene();
-
   try {
-    // Split the GLB URL into directory + filename for SceneLoader
     const lastSlash = artifact.glb_url.lastIndexOf("/");
     const rootUrl =
       lastSlash >= 0 ? artifact.glb_url.substring(0, lastSlash + 1) : "";
     const fileName =
-      lastSlash >= 0 ? artifact.glb_url.substring(lastSlash + 1) : artifact.glb_url;
+      lastSlash >= 0
+        ? artifact.glb_url.substring(lastSlash + 1)
+        : artifact.glb_url;
 
     const result = await SceneLoader.ImportMeshAsync(
       "",
@@ -125,28 +110,16 @@ export async function loadArtifact(
     const root = result.meshes[0];
     root.scaling.setAll(artifact.scale);
     root.rotation.y = artifact.rotation_y;
-    root.position.set(
+    root.position = new Vector3(
       artifact.position.x,
       artifact.position.y + artifact.pedestal.height,
       artifact.position.z
     );
-
-    // Attach to noa entity system for chunk management
-    const eid = noa.entities.add(
-      [artifact.position.x, artifact.position.y, artifact.position.z],
-      1, // width
-      1, // height
-      null,
-      null,
-      false,
-      false
-    );
-    noa.entities.addComponentAgain(eid, "mesh", { mesh: root });
   } catch (err) {
     console.warn(
       `Failed to load artifact ${artifact.id} from ${artifact.glb_url}, using placeholder`,
       err
     );
-    createPlaceholderArtifact(noa, artifact);
+    createPlaceholderArtifact(scene, artifact);
   }
 }

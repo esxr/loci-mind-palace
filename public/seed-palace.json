@@ -238,10 +238,14 @@
       "size": { "width": 16, "height": 6, "depth": 16 },
       "shape": "organic",
       "zone_id": 0,
+      "zone_name": "Genetics",
+      "zone_color": "#2196F3",
       "floor_block": "grass",
       "wall_block": "oak_log",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "library",
+      "ambient_mood": "mysterious"
     },
     {
       "id": "cell_structure",
@@ -250,10 +254,14 @@
       "size": { "width": 16, "height": 6, "depth": 16 },
       "shape": "organic",
       "zone_id": 1,
+      "zone_name": "Cell Biology",
+      "zone_color": "#4CAF50",
       "floor_block": "grass",
       "wall_block": "oak_log",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "laboratory",
+      "ambient_mood": "clinical"
     },
     {
       "id": "mitochondria",
@@ -262,10 +270,14 @@
       "size": { "width": 12, "height": 6, "depth": 12 },
       "shape": "organic",
       "zone_id": 1,
+      "zone_name": "Cell Biology",
+      "zone_color": "#4CAF50",
       "floor_block": "grass",
       "wall_block": "leaves",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "workshop",
+      "ambient_mood": "energetic"
     },
     {
       "id": "proteins",
@@ -274,10 +286,14 @@
       "size": { "width": 12, "height": 6, "depth": 12 },
       "shape": "organic",
       "zone_id": 2,
+      "zone_name": "Biochemistry",
+      "zone_color": "#FF9800",
       "floor_block": "grass",
       "wall_block": "oak_log",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "gallery",
+      "ambient_mood": "clinical"
     },
     {
       "id": "evolution",
@@ -286,10 +302,14 @@
       "size": { "width": 16, "height": 6, "depth": 16 },
       "shape": "organic",
       "zone_id": 3,
+      "zone_name": "Evolution",
+      "zone_color": "#9C27B0",
       "floor_block": "grass",
       "wall_block": "oak_log",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "amphitheater",
+      "ambient_mood": "warm"
     },
     {
       "id": "photosynthesis",
@@ -297,11 +317,15 @@
       "position": { "x": -60, "y": 0, "z": 20 },
       "size": { "width": 12, "height": 6, "depth": 12 },
       "shape": "organic",
-      "zone_id": 4,
+      "zone_id": 2,
+      "zone_name": "Biochemistry",
+      "zone_color": "#FF9800",
       "floor_block": "grass",
       "wall_block": "leaves",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "garden",
+      "ambient_mood": "serene"
     },
     {
       "id": "mutations",
@@ -310,10 +334,14 @@
       "size": { "width": 8, "height": 6, "depth": 8 },
       "shape": "organic",
       "zone_id": 0,
+      "zone_name": "Genetics",
+      "zone_color": "#2196F3",
       "floor_block": "grass",
       "wall_block": "leaves",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "observatory",
+      "ambient_mood": "mysterious"
     },
     {
       "id": "enzymes",
@@ -322,10 +350,14 @@
       "size": { "width": 12, "height": 6, "depth": 12 },
       "shape": "organic",
       "zone_id": 2,
+      "zone_name": "Biochemistry",
+      "zone_color": "#FF9800",
       "floor_block": "grass",
       "wall_block": "oak_log",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "workshop",
+      "ambient_mood": "energetic"
     },
     {
       "id": "cell_membrane",
@@ -334,10 +366,14 @@
       "size": { "width": 12, "height": 6, "depth": 12 },
       "shape": "organic",
       "zone_id": 1,
+      "zone_name": "Cell Biology",
+      "zone_color": "#4CAF50",
       "floor_block": "grass",
       "wall_block": "leaves",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "chamber",
+      "ambient_mood": "clinical"
     },
     {
       "id": "natural_selection",
@@ -346,10 +382,14 @@
       "size": { "width": 12, "height": 6, "depth": 12 },
       "shape": "organic",
       "zone_id": 3,
+      "zone_name": "Evolution",
+      "zone_color": "#9C27B0",
       "floor_block": "grass",
       "wall_block": "oak_log",
       "ceiling_block": null,
-      "has_ceiling": false
+      "has_ceiling": false,
+      "archetype": "amphitheater",
+      "ambient_mood": "energetic"
     }
   ],
   "paths": [
@@ -365,7 +405,8 @@
       "width": 4,
       "floor_block": "stone_path",
       "wall_block": null,
-      "style": "trail"
+      "style": "trail",
+      "direction": "forward"
     },
     {
       "id": "dna_to_proteins",
